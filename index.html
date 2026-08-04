@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>FORGE — Daily Habit Tracker</title>
+  <link rel="manifest" href="./manifest.json"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="FORGE"/>
+  <link rel="apple-touch-icon" href="./icon-512.png"/>
+  <meta name="theme-color" content="#FF6A35"/>
+  <meta name="description" content="Track your daily habits, build streaks, and forge a better version of yourself."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{background:#0D0E10;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:env(safe-area-inset-top,20px) 0 40px;font-family:'Inter',sans-serif}
+    #root{width:100%;max-width:430px}
+    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+    input[type=number]{-moz-appearance:textfield}
+    input[type=range]{cursor:pointer}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#2A2D32;border-radius:99px}
+    input,button{font-family:inherit}
+    button:focus{outline:none}
+  </style>
+</head>
+<body>
+<div id="root"><div style="color:#5C6066;font-family:monospace;padding:40px;text-align:center;font-size:13px">Loading Forge…</div></div>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/prop-types@15.8.1/prop-types.js"></script>
+<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<script src="https://unpkg.com/lucide@0.447.0/dist/umd/lucide.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<script>
+window.storage={get:function(k){return Promise.resolve({value:localStorage.getItem(k)});},set:function(k,v){localStorage.setItem(k,v);return Promise.resolve();}};
+</script>
+<script type="text/babel" data-type="module">
+
+const SVGS={
+  flame:[[["path",{d:"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"}]]],
+  check:[[["polyline",{points:"20 6 9 17 4 12"}]]],
+  chevron_d:[[["path",{d:"m6 9 6 6 6-6"}]]],
+  chevron_r:[[["path",{d:"m9 18 6-6-6-6"}]]],
+  chevron_l:[[["path",{d:"m15 18-6-6 6-6"}]]],
+  dumbbell:[[["path",{d:"M14.4 14.4 9.6 9.6"}],["path",{d:"M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"}],["path",{d:"m21.5 21.5-1.4-1.4"}],["path",{d:"M3.9 3.9 2.5 2.5"}],["path",{d:"M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z"}]]],
+  droplets:[[["path",{d:"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"}],["path",{d:"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"}]]],
+  moon:[[["path",{d:"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"}]]],
+  book_open:[[["path",{d:"M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"}],["path",{d:"M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"}]]],
+  sparkles:[[["path",{d:"m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3z"}],["path",{d:"M5 3 4 6l-3 1 3 1 1 3 1-3 3-1-3-1Z"}],["path",{d:"M19 13l-1 3-3 1 3 1 1 3 1-3 3-1-3-1Z"}]]],
+  briefcase:[[["path",{d:"M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"}],["rect",{width:"20",height:"14",x:"2",y:"6",rx:"2"}]]],
+  trending_up:[[["polyline",{points:"22 7 13.5 15.5 8.5 10.5 2 17"}],["polyline",{points:"16 7 22 7 22 13"}]]],
+  target:[[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"6"}],["circle",{cx:"12",cy:"12",r:"2"}]]],
+  award:[[["path",{d:"m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"}],["circle",{cx:"12",cy:"8",r:"6"}]]],
+  home:[[["path",{d:"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"}],["polyline",{points:"9 22 9 12 15 12 15 22"}]]],
+  calendar:[[["path",{d:"M8 2v4"}],["path",{d:"M16 2v4"}],["rect",{width:"18",height:"18",x:"3",y:"4",rx:"2"}],["path",{d:"M3 10h18"}]]],
+  user:[[["circle",{cx:"12",cy:"8",r:"5"}],["path",{d:"M20 21a8 8 0 0 0-16 0"}]]],
+  plus:[[["path",{d:"M5 12h14"}],["path",{d:"M12 5v14"}]]],
+  x:[[["path",{d:"M18 6 6 18"}],["path",{d:"m6 6 12 12"}]]],
+  pencil:[[["path",{d:"M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"}],["path",{d:"m15 5 4 4"}]]],
+  footprints:[[["path",{d:"M4 16v-2.5C4 9 7 6.5 7 4a3 3 0 0 1 6 0c0 2.5 3 4.5 3 9.5V16"}],["path",{d:"M4 16h6"}],["path",{d:"M14 16h6"}],["path",{d:"M4 20h6a1 1 0 0 0 1-1v-1H4v1a1 1 0 0 0 0 2z"}],["path",{d:"M14 20h6a1 1 0 0 0 0-2h-1v-1h-6v1a1 1 0 0 0 1 1z"}]]],
+  brain:[[["path",{d:"M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"}],["path",{d:"M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"}],["path",{d:"M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"}],["path",{d:"M17.599 6.5a3 3 0 0 0 .399-1.375"}],["path",{d:"M6.003 5.125A3 3 0 0 0 6.401 6.5"}],["path",{d:"M3.477 10.896a4 4 0 0 1 .585-.396"}],["path",{d:"M19.938 10.5a4 4 0 0 1 .585.396"}],["path",{d:"M6 18a4 4 0 0 1-1.967-.516"}],["path",{d:"M19.967 17.484A4 4 0 0 1 18 18"}]]],
+  heart:[[["path",{d:"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"}]]],
+  wine:[[["path",{d:"M8 22h8"}],["path",{d:"M7 10h10"}],["path",{d:"M12 15v7"}],["path",{d:"M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H7c-1.5 4-2 6-2 8a5 5 0 0 0 5 5z"}]]],
+  scroll:[[["path",{d:"M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"}],["path",{d:"M19 3H8.5a2.5 2.5 0 0 0 0 5H12"}]]],
+  lock:[[["rect",{width:"18",height:"11",x:"3",y:"11",rx:"2",ry:"2"}],["path",{d:"M7 11V7a5 5 0 0 1 10 0v4"}]]],
+  unlock:[[["rect",{width:"18",height:"11",x:"3",y:"11",rx:"2",ry:"2"}],["path",{d:"M7 11V7a5 5 0 0 1 9.9-1"}]]],
+  trash:[[["path",{d:"M3 6h18"}],["path",{d:"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"}],["path",{d:"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"}]]],
+};
+
+function Icon({name,size=18,color="#9A9DA3",sw=2}){
+  const data=SVGS[name]||SVGS.sparkles;
+  const children=data[0].map(([tag,attrs],i)=>React.createElement(tag,{key:i,...attrs}));
+  return React.createElement('svg',{xmlns:"http://www.w3.org/2000/svg",width:size,height:size,viewBox:"0 0 24 24",fill:"none",stroke:color,strokeWidth:sw,strokeLinecap:"round",strokeLinejoin:"round",style:{flexShrink:0}},...children);
+}
+
+// ─── design tokens ────────────────────────────────────────────────────────────
+const T={bg:"#0D0E10",surface:"#17191C",surfaceRaised:"#1F2226",border:"#2A2D32",borderSoft:"#212327",textPrimary:"#F3F1EC",textSecondary:"#9A9DA3",textTertiary:"#5C6066",ember:"#FF6A35",emberDim:"#7A3B22",emberSoft:"rgba(255,106,53,0.14)",steel:"#6E93A6",steelSoft:"rgba(110,147,166,0.14)",success:"#6FAE7C",miss:"#C15C51"};
+const df="'Inter',sans-serif";
+const mf="'JetBrains Mono','SF Mono',monospace";
+const CONFIG_KEY="forge-config-v2";
+const LOGS_KEY="forge-logs-v2";
+
+// ─── icon map ─────────────────────────────────────────────────────────────────
+const ICON_MAP={prayer:"heart",bible:"book_open",workout:"dumbbell",steps:"footprints",sleep:"moon",protein:"flame",water:"droplets",creatine:"sparkles",noporn:"lock",read:"book_open",journal:"scroll",screen:"wine",ai:"brain",interview:"briefcase",work:"briefcase",content:"trending_up",trading:"trending_up",hobby:"sparkles"};
+
+// ─── default habits (no phase gating) ────────────────────────────────────────
+const defaultHabits=[
+  {id:"morningPrayer",name:"Morning Prayer",category:"Spiritual",points:5,icon:"prayer"},
+  {id:"bibleReading",name:"Bible Reading",category:"Spiritual",points:10,icon:"bible"},
+  {id:"nightPrayer",name:"Night Prayer",category:"Spiritual",points:5,icon:"prayer"},
+  {id:"workout",name:"Workout Completed",category:"Fitness",points:20,icon:"workout"},
+  {id:"steps",name:"10,000 Steps / Run",category:"Fitness",points:10,icon:"steps"},
+  {id:"sleep",name:"Sleep 8 Hours",category:"Fitness",points:10,icon:"sleep"},
+  {id:"proteinGoal",name:"Protein Goal (80g+)",category:"Nutrition",points:15,icon:"protein",type:"counter",target:80,unit:"g"},
+  {id:"waterGoal",name:"Water Goal (4L)",category:"Nutrition",points:10,icon:"water",type:"counter",target:4,unit:"L"},
+  {id:"creatine",name:"Creatine",category:"Nutrition",points:3,icon:"creatine"},
+  {id:"eggs",name:"Eggs",category:"Nutrition",points:0,icon:"protein",optional:true},
+  {id:"chicken",name:"Chicken",category:"Nutrition",points:0,icon:"protein",optional:true},
+  {id:"proteinShake",name:"Protein Shake",category:"Nutrition",points:0,icon:"protein",optional:true},
+  {id:"noPorn",name:"No Porn / NoFap",category:"Discipline",points:10,icon:"noporn"},
+  {id:"read10",name:"Read 10 Pages",category:"Discipline",points:5,icon:"read"},
+  {id:"journal",name:"Journal",category:"Discipline",points:5,icon:"journal"},
+  {id:"screenTime",name:"Screen Time Under Target",category:"Discipline",points:0,icon:"screen",optional:true},
+  {id:"aiml",name:"AI/ML Learning",category:"Career",points:7,icon:"ai"},
+  {id:"interview",name:"Google Interview Prep",category:"Career",points:7,icon:"interview"},
+  {id:"workDone",name:"Work Completed",category:"Career",points:6,icon:"work"},
+  {id:"content",name:"Content Creation",category:"Growth",points:5,icon:"content"},
+  {id:"trading",name:"Trading Practice",category:"Growth",points:5,icon:"trading"},
+  {id:"guitar",name:"Guitar",category:"Growth",points:3,icon:"hobby"},
+  {id:"badminton",name:"Badminton",category:"Growth",points:3,icon:"hobby"},
+  {id:"cricket",name:"Cricket",category:"Growth",points:3,icon:"hobby"},
+  {id:"dance",name:"Dance",category:"Growth",points:3,icon:"hobby"},
+];
+const BASE_CATS=["Spiritual","Fitness","Nutrition","Discipline","Career","Growth"];
+const defaultGoals=[
+  {id:"g1",name:"Become excellent at my AI/ML job",category:"Career",progress:20},
+  {id:"g2",name:"Land a Google AI/ML role",category:"Career",progress:10},
+  {id:"g3",name:"Lean athletic physique",category:"Fitness",progress:30},
+  {id:"g4",name:"Consistent gym attendance",category:"Fitness",progress:45},
+  {id:"g5",name:"Daily prayer",category:"Spiritual",progress:60},
+  {id:"g6",name:"Daily Bible reading",category:"Spiritual",progress:55},
+  {id:"g7",name:"Grow Instagram",category:"Content",progress:15},
+  {id:"g8",name:"Start YouTube",category:"Content",progress:5},
+  {id:"g9",name:"Travel every two months",category:"Lifestyle",progress:25},
+];
+const defaultRewards=[
+  {id:"r1",name:"MacBook",threshold:90,note:"90 Elite Days"},
+  {id:"r2",name:"iPhone",threshold:60,note:"60 Elite Days"},
+  {id:"r3",name:"Chelsea Boots",threshold:30,note:"30 Elite Days"},
+  {id:"r4",name:"Silver Chain",threshold:15,note:"15 Elite Days"},
+];
+const QUOTES=["Small wins become great lives.","Don't break the chain.","Forge yourself today.","Live every inch of life.","Consistency outlasts intensity.","Discipline is remembering what you want."];
+const defaultConfig={habits:defaultHabits,goals:defaultGoals,rewards:defaultRewards,profile:{name:"",height:"",goalWeight:""},quotes:QUOTES};
+
+// ─── date utils ───────────────────────────────────────────────────────────────
+const pad=n=>String(n).padStart(2,"0");
+const toKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayKey=()=>toKey(new Date());
+const addDays=(k,n)=>{const d=new Date(k+"T00:00:00");d.setDate(d.getDate()+n);return toKey(d);};
+const dayLabel=k=>new Date(k+"T00:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+const greet=()=>{const h=new Date().getHours();return h<5?"Still up":h<12?"Good morning":h<17?"Good afternoon":h<21?"Good evening":"Winding down";};
+
+// ─── storage ──────────────────────────────────────────────────────────────────
+const loadCfg=async()=>{try{const r=await window.storage.get(CONFIG_KEY);if(r?.value){const saved=JSON.parse(r.value);return{...defaultConfig,...saved,profile:{...defaultConfig.profile,...(saved.profile||{})}};}}catch(e){}return defaultConfig;};
+const saveCfg=async c=>{try{await window.storage.set(CONFIG_KEY,JSON.stringify(c));}catch(e){}};
+const loadLogs=async()=>{try{const r=await window.storage.get(LOGS_KEY);if(r?.value)return JSON.parse(r.value);}catch(e){}return{};};
+const saveLogs=async l=>{try{await window.storage.set(LOGS_KEY,JSON.stringify(l));}catch(e){}};
+
+// ─── scoring (NO phase gating) ────────────────────────────────────────────────
+const activeFor=cfg=>cfg.habits;
+const scoredFor=cfg=>activeFor(cfg).filter(h=>!h.optional&&h.points>0);
+function dayScore(cfg,log){
+  const hs=scoredFor(cfg),tot=hs.reduce((s,h)=>s+h.points,0);
+  if(!tot)return 0;
+  let earn=0;
+  hs.forEach(h=>{const v=log?log[h.id]:undefined;if(h.type==="counter"){if(typeof v==="number"&&v>=h.target)earn+=h.points;else if(typeof v==="number")earn+=h.points*Math.min(1,v/h.target);}else if(v===true)earn+=h.points;});
+  return Math.round((earn/tot)*100);
+}
+const lbl=s=>s>=95?{l:"Elite Day",c:T.ember}:s>=85?{l:"Great Day",c:T.ember}:s>=70?{l:"Good Day",c:T.steel}:{l:"Needs Improvement",c:T.textTertiary};
+function curStreak(cfg,logs,end){let n=0,c=end;for(let i=0;i<3650;i++){if(dayScore(cfg,logs[c])>=70){n++;c=addDays(c,-1);}else break;}return n;}
+function longestStreak(cfg,logs){const ks=Object.keys(logs).sort();let lng=0,cur=0,p=null;ks.forEach(k=>{if(dayScore(cfg,logs[k])>=70){cur=(p&&addDays(p,1)===k)?cur+1:1;lng=Math.max(lng,cur);}else cur=0;p=k;});return lng;}
+function heatCol(s){if(s==null)return T.borderSoft;if(s>=95)return"#FFE9D6";if(s>=85)return T.ember;if(s>=70)return"#B9683B";if(s>=40)return T.steel;return T.miss;}
+
+// ─── atoms ────────────────────────────────────────────────────────────────────
+const Card=({children,style})=>(<div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:18,...style}}>{children}</div>);
+const ST=({children})=>(<div style={{fontFamily:df,fontWeight:700,fontSize:12,color:T.textTertiary,letterSpacing:.8,textTransform:"uppercase",marginBottom:-4}}>{children}</div>);
+const Pill=({children,color=T.textSecondary})=>(<span style={{fontFamily:mf,fontSize:11,letterSpacing:.4,color,padding:"3px 9px",borderRadius:999,border:`1px solid ${T.border}`}}>{children}</span>);
+const HIcon=({name,size=17,color})=><Icon name={ICON_MAP[name]||"sparkles"} size={size} color={color||T.textSecondary}/>;
+const navBtn={width:34,height:34,borderRadius:12,border:`1px solid ${T.border}`,background:T.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"};
+
+// ─── ForgeRing ────────────────────────────────────────────────────────────────
+function ForgeRing({score,size=148}){
+  const stroke=12,r=(size-stroke)/2,c=2*Math.PI*r,dash=(score/100)*c;
+  const hc=score>=90?"#FFE9D6":score>=70?T.ember:score>=40?"#D97A46":T.steel;
+  const glow=Math.min(1,score/100);
+  return (
+    <div style={{position:"relative",width:size,height:size}}>
+      <svg width={size} height={size} style={{transform:"rotate(-90deg)"}}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={T.borderSoft} strokeWidth={stroke}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={hc} strokeWidth={stroke}
+          strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
+          style={{filter:`drop-shadow(0 0 ${6+glow*14}px ${hc})`,transition:"stroke-dasharray .6s ease"}}/>
+      </svg>
+      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+        <div style={{fontFamily:mf,fontSize:size>100?34:24,fontWeight:700,color:T.textPrimary,lineHeight:1}}>{score}</div>
+        <div style={{fontFamily:mf,fontSize:11,color:T.textTertiary,marginTop:4,letterSpacing:1}}>/ 100</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── HabitRow ─────────────────────────────────────────────────────────────────
+function HabitRow({habit,value,onToggle,onCounter}){
+  const done=habit.type==="counter"?(value>=habit.target):value===true;
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderBottom:`1px solid ${T.borderSoft}`}}>
+      <div style={{width:32,height:32,borderRadius:10,background:T.surfaceRaised,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+        <HIcon name={habit.icon} size={17} color={done?T.ember:T.textSecondary}/>
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontFamily:df,fontSize:13.5,fontWeight:500,color:T.textPrimary}}>{habit.name}</div>
+        {habit.optional&&<div style={{fontFamily:mf,fontSize:10,color:T.textTertiary}}>optional</div>}
+      </div>
+      {habit.type==="counter"?(
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <input type="number" value={value||""} placeholder="0" onChange={e=>onCounter(Number(e.target.value))}
+            style={{width:52,background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:8,color:T.textPrimary,fontFamily:mf,fontSize:12,padding:"6px",textAlign:"center",outline:"none"}}/>
+          <span style={{fontFamily:mf,fontSize:11,color:T.textTertiary}}>{habit.unit}</span>
+        </div>
+      ):(
+        <button onClick={onToggle} style={{width:28,height:28,borderRadius:"50%",flexShrink:0,cursor:"pointer",
+          border:`1.5px solid ${done?T.ember:T.border}`,background:done?T.ember:"transparent",
+          display:"flex",alignItems:"center",justifyContent:"center",
+          boxShadow:done?`0 0 10px ${T.emberSoft}`:"none",transition:"all .15s ease"}}>
+          {done&&<Icon name="check" size={14} color="#0D0E10" sw={3}/>}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── StatCard ─────────────────────────────────────────────────────────────────
+function StatCard({icon,label,value}){
+  return (
+    <Card style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
+      {icon}
+      <div style={{fontFamily:mf,fontWeight:700,fontSize:20,color:T.textPrimary}}>{value}</div>
+      <div style={{fontFamily:df,fontSize:11.5,color:T.textTertiary}}>{label}</div>
+    </Card>
+  );
+}
+
+// ─── CalHeat ─────────────────────────────────────────────────────────────────
+function CalHeat({config,logs,weeks=12}){
+  const days=[];let c=todayKey();
+  for(let i=0;i<weeks*7;i++){days.unshift(c);c=addDays(c,-1);}
+  const grid=[];for(let i=0;i<weeks;i++)grid.push(days.slice(i*7,i*7+7));
+  return (
+    <div style={{display:"flex",gap:3,overflowX:"auto",paddingBottom:4}}>
+      {grid.map((col,ci)=>(
+        <div key={ci} style={{display:"flex",flexDirection:"column",gap:3}}>
+          {col.map(k=>{const s=logs[k]?dayScore(config,logs[k]):null;return(
+            <div key={k} title={`${k}: ${s==null?"—":s+"%"}`} style={{width:11,height:11,borderRadius:3,background:heatCol(s)}}/>
+          );})}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── ADD HABIT MODAL ──────────────────────────────────────────────────────────
+function AddHabitModal({config,setConfig,onClose}){
+  const [name,setName]=React.useState("");
+  const [cat,setCat]=React.useState("Fitness");
+  const [customCat,setCustomCat]=React.useState("");
+  const [pts,setPts]=React.useState(5);
+  const [htype,setHtype]=React.useState("boolean");
+  const [target,setTarget]=React.useState(10);
+  const [unit,setUnit]=React.useState("");
+  const [optional,setOptional]=React.useState(false);
+
+  const existingCats=React.useMemo(()=>{
+    const s=new Set(BASE_CATS);
+    config.habits.forEach(h=>{if(h.category)s.add(h.category);});
+    return[...s];
+  },[config.habits]);
+
+  const save=()=>{
+    if(!name.trim())return;
+    const finalCat=customCat.trim()||cat;
+    const newH={
+      id:"h"+Date.now(),name:name.trim(),category:finalCat,
+      points:optional?0:Number(pts)||5,icon:"sparkles",
+      ...(htype==="counter"?{type:"counter",target:Number(target)||10,unit:unit.trim()||""}:{}),
+      ...(optional?{optional:true}:{}),
+    };
+    setConfig({...config,habits:[...config.habits,newH]});
+    onClose();
+  };
+
+  const inp={background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:10,color:T.textPrimary,fontFamily:df,fontSize:13,padding:"10px 12px",outline:"none",width:"100%"};
+  const fieldLabel={fontFamily:df,fontSize:12,color:T.textTertiary,marginBottom:5,display:"block"};
+
+  return (
+    <div onClick={e=>{if(e.target===e.currentTarget)onClose();}}
+      style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+      <div style={{background:T.surface,borderRadius:"20px 20px 0 0",padding:24,width:"100%",maxWidth:430,maxHeight:"90vh",overflowY:"auto"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
+          <div style={{fontFamily:df,fontWeight:700,fontSize:17,color:T.textPrimary}}>New Habit</div>
+          <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Icon name="x" size={18} color={T.textSecondary}/></button>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div>
+            <label style={fieldLabel}>Habit name</label>
+            <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Calisthenics, Cold Shower…" style={inp} autoFocus/>
+          </div>
+          <div>
+            <label style={fieldLabel}>Category</label>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+              {existingCats.map(c=>(
+                <button key={c} onClick={()=>{setCat(c);setCustomCat("");}}
+                  style={{padding:"5px 13px",borderRadius:999,fontSize:12,fontFamily:df,cursor:"pointer",border:"none",transition:"all .12s",
+                    background:cat===c&&!customCat?T.ember:T.surfaceRaised,
+                    color:cat===c&&!customCat?"#0D0E10":T.textSecondary}}>
+                  {c}
+                </button>
+              ))}
+            </div>
+            <input value={customCat} onChange={e=>setCustomCat(e.target.value)} placeholder="Or create a new category…"
+              style={{...inp,fontSize:12,padding:"8px 12px"}}/>
+          </div>
+          <div style={{display:"flex",gap:10}}>
+            <div style={{flex:1}}>
+              <label style={fieldLabel}>Type</label>
+              <div style={{display:"flex",gap:6}}>
+                {[["boolean","✓ Done"],["counter","# Counter"]].map(([v,l])=>(
+                  <button key={v} onClick={()=>setHtype(v)}
+                    style={{flex:1,padding:"8px 4px",borderRadius:10,cursor:"pointer",fontFamily:df,fontSize:12,
+                      border:`1px solid ${htype===v?T.ember:T.border}`,
+                      background:htype===v?T.emberSoft:"transparent",
+                      color:htype===v?T.ember:T.textSecondary}}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {!optional&&(
+              <div>
+                <label style={fieldLabel}>Points</label>
+                <input type="number" value={pts} onChange={e=>setPts(e.target.value)} min={0} max={100}
+                  style={{...inp,width:72,textAlign:"center"}}/>
+              </div>
+            )}
+          </div>
+          {htype==="counter"&&(
+            <div style={{display:"flex",gap:10}}>
+              <div style={{flex:1}}>
+                <label style={fieldLabel}>Target</label>
+                <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={inp}/>
+              </div>
+              <div style={{flex:1}}>
+                <label style={fieldLabel}>Unit</label>
+                <input value={unit} onChange={e=>setUnit(e.target.value)} placeholder="g, L, reps…" style={inp}/>
+              </div>
+            </div>
+          )}
+          <div style={{display:"flex",alignItems:"center",gap:10,padding:"2px 0"}}>
+            <button onClick={()=>setOptional(v=>!v)}
+              style={{width:20,height:20,borderRadius:5,cursor:"pointer",flexShrink:0,
+                border:`1.5px solid ${optional?T.ember:T.border}`,
+                background:optional?T.ember:"transparent",
+                display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {optional&&<Icon name="check" size={12} color="#0D0E10" sw={3}/>}
+            </button>
+            <span style={{fontFamily:df,fontSize:12.5,color:T.textSecondary}}>Optional — just for tracking, no score impact</span>
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:4}}>
+            <button onClick={onClose}
+              style={{flex:1,padding:"13px",borderRadius:12,background:"transparent",border:`1px solid ${T.border}`,color:T.textSecondary,fontFamily:df,fontSize:13,cursor:"pointer"}}>
+              Cancel
+            </button>
+            <button onClick={save}
+              style={{flex:2,padding:"13px",borderRadius:12,background:T.ember,border:"none",color:"#0D0E10",fontFamily:df,fontWeight:700,fontSize:13,cursor:"pointer"}}>
+              Save Habit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── DASHBOARD TAB ────────────────────────────────────────────────────────────
+function DashboardTab({config,logs,quote}){
+  const tk=todayKey(),yk=addDays(tk,-1);
+  const ts=dayScore(config,logs[tk]),ys=logs[yk]?dayScore(config,logs[yk]):null;
+  const cs=curStreak(config,logs,tk),ls=longestStreak(config,logs);
+  const yr=`${new Date().getFullYear()}-01-01`;
+  const done=Object.keys(logs).filter(k=>k>=yr&&dayScore(config,logs[k])>=70).length;
+  const hs=activeFor(config).filter(h=>!h.optional&&h.points>0);
+  const log=logs[tk]||{};
+  const rem=hs.filter(h=>!(h.type==="counter"?log[h.id]>=h.target:log[h.id]===true)).length;
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+      <div>
+        <div style={{fontFamily:df,fontSize:13,color:T.textTertiary}}>{new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}</div>
+        <div style={{fontFamily:df,fontWeight:800,fontSize:26,color:T.textPrimary,marginTop:2,letterSpacing:-.5}}>{greet()}.</div>
+        <div style={{fontFamily:df,fontSize:13,color:T.textSecondary,marginTop:6,fontStyle:"italic",lineHeight:1.5}}>"{quote}"</div>
+      </div>
+      <Card>
+        <div style={{display:"flex",alignItems:"center",gap:18}}>
+          <ForgeRing score={ts}/>
+          <div style={{flex:1,display:"flex",flexDirection:"column",gap:10}}>
+            <div>
+              <div style={{fontFamily:mf,fontSize:10,color:T.textTertiary,letterSpacing:1,marginBottom:2}}>TODAY'S SCORE</div>
+              <div style={{fontFamily:df,fontWeight:700,fontSize:16,color:lbl(ts).c}}>{lbl(ts).l}</div>
+            </div>
+            {ys!==null&&(
+              <div style={{display:"flex",gap:14}}>
+                <div><div style={{fontFamily:mf,fontSize:10,color:T.textTertiary}}>YESTERDAY</div><div style={{fontFamily:mf,fontSize:15,color:T.textSecondary}}>{ys}%</div></div>
+                <div><div style={{fontFamily:mf,fontSize:10,color:T.textTertiary}}>TODAY</div><div style={{fontFamily:mf,fontSize:15,color:ts>=ys?T.success:T.miss}}>{ts}%</div></div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div style={{marginTop:12,fontFamily:df,fontSize:12.5,color:T.textSecondary}}>{rem===0?"Everything forged for today. 🔥":`${rem} habit${rem===1?"":"s"} remaining today.`}</div>
+      </Card>
+      <div style={{display:"flex",gap:12}}>
+        <StatCard icon={<Icon name="flame" size={16} color={T.ember}/>} label="Current Streak" value={`${cs}d`}/>
+        <StatCard icon={<Icon name="award" size={16} color={T.steel}/>} label="Longest Streak" value={`${ls}d`}/>
+      </div>
+      <div style={{display:"flex",gap:12}}>
+        <StatCard icon={<Icon name="calendar" size={16} color={T.textSecondary}/>} label={`${new Date().getFullYear()} Days`} value={`${done}d`}/>
+        <StatCard icon={<Icon name="target" size={16} color={T.textSecondary}/>} label="Active Habits" value={`${hs.length}`}/>
+      </div>
+    </div>
+  );
+}
+
+// ─── TODAY TAB ────────────────────────────────────────────────────────────────
+function TodayTab({config,setConfig,logs,setLogs,selDate,setSelDate}){
+  const [col,setCol]=React.useState({});
+  const [showAddHabit,setShowAddHabit]=React.useState(false);
+  const habits=activeFor(config),log=logs[selDate]||{},score=dayScore(config,log);
+  const toggle=(id,h)=>{if(h.type==="counter")return;setLogs({...logs,[selDate]:{...log,[id]:!log[id]}});};
+  const setCtr=(id,v)=>{setLogs({...logs,[selDate]:{...log,[id]:v}});};
+  const yk=addDays(selDate,-1),ys=logs[yk]?dayScore(config,logs[yk]):null,missed=ys!==null&&ys<70;
+  const rem=activeFor(config).filter(h=>!h.optional&&h.points>0&&!(log[h.id]===true||(h.type==="counter"&&log[h.id]>=h.target))).length;
+  const allCats=React.useMemo(()=>{const s=new Set(BASE_CATS);config.habits.forEach(h=>{if(h.category)s.add(h.category);});return[...s];},[config.habits]);
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <button onClick={()=>setSelDate(addDays(selDate,-1))} style={navBtn}><Icon name="chevron_l" size={18} color={T.textSecondary}/></button>
+        <div style={{textAlign:"center"}}>
+          <div style={{fontFamily:df,fontWeight:700,fontSize:16,color:T.textPrimary}}>{selDate===todayKey()?"Today":dayLabel(selDate)}</div>
+          <div style={{fontFamily:mf,fontSize:11,color:T.textTertiary}}>{selDate}</div>
+        </div>
+        <button onClick={()=>selDate!==todayKey()&&setSelDate(addDays(selDate,1))} style={{...navBtn,opacity:selDate===todayKey()?.3:1}}><Icon name="chevron_r" size={18} color={T.textSecondary}/></button>
+      </div>
+      {missed&&(
+        <Card style={{background:T.steelSoft,border:`1px solid ${T.steel}33`}}>
+          <div style={{fontFamily:df,fontWeight:600,fontSize:13,color:T.textPrimary,marginBottom:2}}>Yesterday was missed.</div>
+          <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,lineHeight:1.5}}>Today is your chance to restart. Don't miss twice.</div>
+        </Card>
+      )}
+      <div style={{display:"flex",alignItems:"center",gap:14}}>
+        <ForgeRing score={score} size={92}/>
+        <div style={{flex:1}}>
+          <div style={{fontFamily:df,fontWeight:700,fontSize:15,color:lbl(score).c}}>{lbl(score).l}</div>
+          <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,marginTop:2}}>{rem} habit{rem===1?"":"s"} remaining</div>
+        </div>
+      </div>
+      {allCats.map(cat=>{
+        const items=habits.filter(h=>h.category===cat);if(!items.length)return null;
+        const isCol=col[cat],dn=items.filter(h=>h.type==="counter"?(log[h.id]>=h.target):log[h.id]===true).length;
+        return (
+          <Card key={cat} style={{padding:0,overflow:"hidden"}}>
+            <button onClick={()=>setCol(c=>({...c,[cat]:!c[cat]}))} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",background:"transparent",border:"none",padding:"14px 16px",cursor:"pointer"}}>
+              <span style={{fontFamily:df,fontWeight:700,fontSize:14,color:T.textPrimary}}>{cat}</span>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontFamily:mf,fontSize:11,color:T.textTertiary}}>{dn}/{items.length}</span>
+                {isCol?<Icon name="chevron_r" size={16} color={T.textTertiary}/>:<Icon name="chevron_d" size={16} color={T.textTertiary}/>}
+              </div>
+            </button>
+            {!isCol&&<div style={{borderTop:`1px solid ${T.borderSoft}`}}>{items.map(h=><HabitRow key={h.id} habit={h} value={log[h.id]} onToggle={()=>toggle(h.id,h)} onCounter={v=>setCtr(h.id,v)}/>)}</div>}
+          </Card>
+        );
+      })}
+      <button onClick={()=>setShowAddHabit(true)}
+        style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"13px",borderRadius:16,background:"transparent",border:`1.5px dashed ${T.border}`,cursor:"pointer",width:"100%",transition:"border-color .15s"}}
+        onMouseEnter={e=>e.currentTarget.style.borderColor=T.ember}
+        onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
+        <Icon name="plus" size={16} color={T.ember}/>
+        <span style={{fontFamily:df,fontSize:13,color:T.ember,fontWeight:600}}>Add Habit</span>
+      </button>
+      {showAddHabit&&<AddHabitModal config={config} setConfig={setConfig} onClose={()=>setShowAddHabit(false)}/>}
+    </div>
+  );
+}
+
+// ─── PROGRESS TAB ─────────────────────────────────────────────────────────────
+function ProgressTab({config,logs}){
+  const last14=React.useMemo(()=>{const a=[];let c=addDays(todayKey(),-13);for(let i=0;i<14;i++){a.push({date:c.slice(5),score:logs[c]?dayScore(config,logs[c]):0});c=addDays(c,1);}return a;},[config,logs]);
+  const hc=React.useMemo(()=>{const hs=scoredFor(config),ks=Object.keys(logs).slice(-30);return hs.map(h=>{const hits=ks.filter(k=>{const v=logs[k]&&logs[k][h.id];return h.type==="counter"?v>=h.target:v===true;});return{name:h.name,pct:ks.length?Math.round((hits.length/ks.length)*100):0};}).sort((a,b)=>b.pct-a.pct);},[config,logs]);
+  const {ResponsiveContainer,LineChart,Line,XAxis,YAxis,CartesianGrid,Tooltip}=Recharts;
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <ST>Calendar Heatmap</ST>
+      <Card><CalHeat config={config} logs={logs}/></Card>
+      <ST>Last 14 Days</ST>
+      <Card>
+        <ResponsiveContainer width="100%" height={160}>
+          <LineChart data={last14}>
+            <CartesianGrid stroke={T.borderSoft} vertical={false}/>
+            <XAxis dataKey="date" tick={{fill:T.textTertiary,fontSize:9,fontFamily:mf}} axisLine={{stroke:T.border}} tickLine={false}/>
+            <YAxis domain={[0,100]} tick={{fill:T.textTertiary,fontSize:9,fontFamily:mf}} axisLine={false} tickLine={false} width={24}/>
+            <Tooltip contentStyle={{background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:10,fontFamily:mf,fontSize:11}} labelStyle={{color:T.textSecondary}}/>
+            <Line type="monotone" dataKey="score" stroke={T.ember} strokeWidth={2} dot={{r:3,fill:T.ember}}/>
+          </LineChart>
+        </ResponsiveContainer>
+      </Card>
+      <ST>Habit Consistency (30d)</ST>
+      <Card style={{display:"flex",flexDirection:"column",gap:10}}>
+        {hc.map(h=>(
+          <div key={h.name}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+              <span style={{fontFamily:df,fontSize:12.5,color:T.textPrimary}}>{h.name}</span>
+              <span style={{fontFamily:mf,fontSize:11,color:T.textSecondary}}>{h.pct}%</span>
+            </div>
+            <div style={{height:5,background:T.surfaceRaised,borderRadius:999,overflow:"hidden"}}>
+              <div style={{width:`${h.pct}%`,height:"100%",background:h.pct>=70?T.ember:T.steel,borderRadius:999,transition:"width .3s ease"}}/>
+            </div>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+// ─── GOALS TAB ────────────────────────────────────────────────────────────────
+function GoalsTab({config,setConfig,logs}){
+  const [showForm,setShowForm]=React.useState(false);
+  const [ng,setNg]=React.useState("");
+  const [ngCat,setNgCat]=React.useState("Career");
+  const [ngCustomCat,setNgCustomCat]=React.useState("");
+  const elite=Object.keys(logs).filter(k=>dayScore(config,logs[k])>=95).length;
+  const upG=(id,p)=>setConfig({...config,goals:config.goals.map(g=>g.id===id?{...g,progress:p}:g)});
+  const rmG=id=>setConfig({...config,goals:config.goals.filter(g=>g.id!==id)});
+
+  const goalCats=React.useMemo(()=>{
+    const s=new Set(["Career","Fitness","Spiritual","Content","Lifestyle","Growth"]);
+    config.goals.forEach(g=>{if(g.category)s.add(g.category);});
+    return[...s];
+  },[config.goals]);
+
+  const addG=()=>{
+    if(!ng.trim())return;
+    const finalCat=ngCustomCat.trim()||ngCat;
+    setConfig({...config,goals:[...config.goals,{id:"g"+Date.now(),name:ng.trim(),category:finalCat,progress:0}]});
+    setNg("");setNgCat("Career");setNgCustomCat("");setShowForm(false);
+  };
+
+  const grp={};config.goals.forEach(g=>{(grp[g.category]=grp[g.category]||[]).push(g);});
+  const inp={background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:10,color:T.textPrimary,fontFamily:df,fontSize:13,padding:"10px 12px",outline:"none",width:"100%"};
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <ST>Long-Term Goals</ST>
+      {Object.entries(grp).map(([cat,items])=>(
+        <Card key={cat}>
+          <div style={{fontFamily:df,fontWeight:700,fontSize:13,color:T.textPrimary,marginBottom:12}}>{cat}</div>
+          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            {items.map(g=>(
+              <div key={g.id}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <span style={{fontFamily:df,fontSize:13,color:T.textPrimary,flex:1,marginRight:8}}>{g.name}</span>
+                  <button onClick={()=>rmG(g.id)} style={{background:"none",border:"none",cursor:"pointer",padding:2,flexShrink:0}}><Icon name="x" size={13} color={T.textTertiary}/></button>
+                </div>
+                <input type="range" min={0} max={100} value={g.progress} onChange={e=>upG(g.id,Number(e.target.value))} style={{width:"100%",accentColor:T.ember}}/>
+                <div style={{fontFamily:mf,fontSize:11,color:T.textTertiary,textAlign:"right",marginTop:2}}>{g.progress}%</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ))}
+
+      {!showForm?(
+        <button onClick={()=>setShowForm(true)}
+          style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"13px",borderRadius:16,background:"transparent",border:`1.5px dashed ${T.border}`,cursor:"pointer",width:"100%"}}
+          onMouseEnter={e=>e.currentTarget.style.borderColor=T.ember}
+          onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
+          <Icon name="plus" size={16} color={T.ember}/>
+          <span style={{fontFamily:df,fontSize:13,color:T.ember,fontWeight:600}}>Add Goal</span>
+        </button>
+      ):(
+        <Card style={{display:"flex",flexDirection:"column",gap:12}}>
+          <div style={{fontFamily:df,fontWeight:700,fontSize:15,color:T.textPrimary}}>New Goal</div>
+          <input value={ng} onChange={e=>setNg(e.target.value)} placeholder="What do you want to achieve?" onKeyDown={e=>e.key==="Enter"&&addG()} style={inp} autoFocus/>
+          <div>
+            <div style={{fontFamily:df,fontSize:12,color:T.textTertiary,marginBottom:6}}>Category</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+              {goalCats.map(c=>(
+                <button key={c} onClick={()=>{setNgCat(c);setNgCustomCat("");}}
+                  style={{padding:"5px 13px",borderRadius:999,fontSize:12,fontFamily:df,cursor:"pointer",border:"none",
+                    background:ngCat===c&&!ngCustomCat?T.ember:T.surfaceRaised,
+                    color:ngCat===c&&!ngCustomCat?"#0D0E10":T.textSecondary}}>
+                  {c}
+                </button>
+              ))}
+            </div>
+            <input value={ngCustomCat} onChange={e=>setNgCustomCat(e.target.value)} placeholder="Or create a new category…"
+              style={{...inp,fontSize:12,padding:"8px 12px"}}/>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>{setShowForm(false);setNg("");setNgCustomCat("");}}
+              style={{flex:1,padding:"11px",borderRadius:12,background:"transparent",border:`1px solid ${T.border}`,color:T.textSecondary,fontFamily:df,fontSize:12,cursor:"pointer"}}>
+              Cancel
+            </button>
+            <button onClick={addG}
+              style={{flex:2,padding:"11px",borderRadius:12,background:T.ember,border:"none",color:"#0D0E10",fontFamily:df,fontWeight:700,fontSize:13,cursor:"pointer"}}>
+              Save Goal
+            </button>
+          </div>
+        </Card>
+      )}
+
+      <ST>Rewards</ST>
+      <Card style={{display:"flex",flexDirection:"column",gap:12}}>
+        {config.rewards.map(r=>{const u=elite>=r.threshold;return(
+          <div key={r.id} style={{display:"flex",alignItems:"center",gap:12,opacity:u?1:.5}}>
+            <Icon name={u?"unlock":"lock"} size={16} color={u?T.ember:T.textTertiary}/>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:df,fontSize:13,color:T.textPrimary}}>{r.name}</div>
+              <div style={{fontFamily:mf,fontSize:10.5,color:T.textTertiary}}>{r.note}</div>
+            </div>
+            <Pill color={u?T.ember:T.textTertiary}>{Math.min(elite,r.threshold)}/{r.threshold}</Pill>
+          </div>
+        );})}
+      </Card>
+    </div>
+  );
+}
+
+// ─── REVIEWS TAB ──────────────────────────────────────────────────────────────
+const RR=({label,value})=>(
+  <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}>
+    <span style={{fontFamily:df,fontSize:12.5,color:T.textSecondary}}>{label}</span>
+    <span style={{fontFamily:mf,fontSize:12.5,color:T.textPrimary}}>{value}</span>
+  </div>
+);
+
+function ReviewsTab({config,logs}){
+  const hs=scoredFor(config);
+  function build(days){
+    let c=todayKey();const ks=[];for(let i=0;i<days;i++){ks.unshift(c);c=addDays(c,-1);}
+    const wd=ks.filter(k=>logs[k]);const scores=wd.map(k=>dayScore(config,logs[k]));
+    const avg=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
+    const cmp=ks.length?Math.round((wd.filter(k=>dayScore(config,logs[k])>=70).length/ks.length)*100):0;
+    const hst=hs.map(h=>{const hits=wd.filter(k=>{const v=logs[k][h.id];return h.type==="counter"?v>=h.target:v===true;}).length;return{name:h.name,pct:wd.length?Math.round((hits/wd.length)*100):0};});
+    const best=hst.slice().sort((a,b)=>b.pct-a.pct)[0],worst=hst.slice().sort((a,b)=>a.pct-b.pct)[0];
+    let lng=0,cur=0,pk=null;ks.forEach(k=>{const s=logs[k]?dayScore(config,logs[k]):0;if(s>=70){cur=pk&&addDays(pk,1)===k?cur+1:1;lng=Math.max(lng,cur);}else cur=0;pk=k;});
+    return{avg,cmp,best,worst,lng,wdc:wd.length};
+  }
+  const W=build(7),M=build(30);
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <ST>This Week</ST>
+      <Card style={{display:"flex",flexDirection:"column",gap:8}}>
+        <RR label="Overall Score" value={`${W.avg}/100`}/>
+        <RR label="Completion" value={`${W.cmp}%`}/>
+        <RR label="Longest Streak" value={`${W.lng}d`}/>
+        {W.best&&<RR label="Best Habit" value={W.best.name}/>}
+        {W.worst&&<RR label="Weakest Habit" value={W.worst.name}/>}
+        <div style={{marginTop:8,padding:12,background:T.emberSoft,borderRadius:12}}>
+          <div style={{fontFamily:df,fontSize:12.5,color:T.textPrimary,lineHeight:1.6}}>
+            {W.wdc===0?"No entries yet — start today, one habit at a time.":W.avg>=85?`Strong week. You averaged ${W.avg}/100 with a ${W.lng}-day run.`:`You averaged ${W.avg}/100. Focus on "${W.worst?W.worst.name:"your weakest habit"}".`}
+          </div>
+        </div>
+      </Card>
+      <ST>This Month</ST>
+      <Card style={{display:"flex",flexDirection:"column",gap:8}}>
+        <RR label="Average Score" value={`${M.avg}/100`}/>
+        <RR label="Completion" value={`${M.cmp}%`}/>
+        <RR label="Longest Streak" value={`${M.lng}d`}/>
+        {M.best&&<RR label="Best Habit" value={M.best.name}/>}
+        {M.worst&&<RR label="Weakest Habit" value={M.worst.name}/>}
+        <div style={{marginTop:4,padding:8,background:T.borderSoft,borderRadius:12}}><CalHeat config={config} logs={logs} weeks={5}/></div>
+      </Card>
+    </div>
+  );
+}
+
+// ─── PROFILE TAB ──────────────────────────────────────────────────────────────
+function ProfileTab({config,setConfig,logs}){
+  const [ew,setEw]=React.useState(false);
+  const [showAddHabit,setShowAddHabit]=React.useState(false);
+  const tk=todayKey(),cs=curStreak(config,logs,tk),ls=longestStreak(config,logs);
+  const elite=Object.keys(logs).filter(k=>dayScore(config,logs[k])>=95).length;
+  const td=Object.keys(logs).length,avg=td?Math.round(Object.keys(logs).reduce((s,k)=>s+dayScore(config,logs[k]),0)/td):0;
+  const upP=(f,v)=>setConfig({...config,profile:{...config.profile,[f]:v}});
+  const upH=(id,p)=>setConfig({...config,habits:config.habits.map(h=>h.id===id?{...h,points:p}:h)});
+  const rmH=id=>setConfig({...config,habits:config.habits.filter(h=>h.id!==id)});
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+      <Card style={{display:"flex",alignItems:"center",gap:14}}>
+        <div style={{width:54,height:54,borderRadius:"50%",background:T.emberSoft,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <Icon name="user" size={24} color={T.ember}/>
+        </div>
+        <div style={{flex:1}}>
+          <input value={config.profile.name} onChange={e=>upP("name",e.target.value)} placeholder="Your name"
+            style={{background:"transparent",border:"none",fontFamily:df,fontWeight:700,fontSize:16,color:T.textPrimary,width:"100%",outline:"none"}}/>
+          <div style={{fontFamily:mf,fontSize:11,color:T.textTertiary,marginTop:2}}>Forge your best self</div>
+        </div>
+      </Card>
+      <div style={{display:"flex",gap:12}}>
+        <StatCard icon={<Icon name="flame" size={16} color={T.ember}/>} label="Current Streak" value={`${cs}d`}/>
+        <StatCard icon={<Icon name="award" size={16} color={T.steel}/>} label="Longest Streak" value={`${ls}d`}/>
+      </div>
+      <div style={{display:"flex",gap:12}}>
+        <StatCard icon={<Icon name="sparkles" size={16} color={T.ember}/>} label="Elite Days" value={`${elite}`}/>
+        <StatCard icon={<Icon name="trending_up" size={16} color={T.textSecondary}/>} label="Overall Avg" value={`${avg}`}/>
+      </div>
+      <ST>Body</ST>
+      <Card style={{display:"flex",flexDirection:"column",gap:10}}>
+        {[["Height (cm)","height"],["Goal Weight (kg)","goalWeight"]].map(([label,field])=>(
+          <div key={field} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <span style={{fontFamily:df,fontSize:12.5,color:T.textSecondary}}>{label}</span>
+            <input value={config.profile[field]||""} onChange={e=>upP(field,e.target.value)}
+              style={{width:90,background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:8,color:T.textPrimary,fontFamily:mf,fontSize:12,padding:"6px 8px",textAlign:"right",outline:"none"}}/>
+          </div>
+        ))}
+      </Card>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <ST>Habits &amp; Scoring</ST>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <button onClick={()=>setShowAddHabit(true)}
+            style={{display:"flex",alignItems:"center",gap:5,background:T.emberSoft,border:"none",borderRadius:8,cursor:"pointer",padding:"5px 10px"}}>
+            <Icon name="plus" size={13} color={T.ember}/>
+            <span style={{fontFamily:df,fontSize:11,color:T.ember,fontWeight:600}}>Add Habit</span>
+          </button>
+          <button onClick={()=>setEw(v=>!v)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Icon name="pencil" size={13} color={T.textTertiary}/></button>
+        </div>
+      </div>
+      {ew&&(
+        <Card style={{display:"flex",flexDirection:"column",gap:10}}>
+          {config.habits.map(h=>(
+            <div key={h.id} style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontFamily:df,fontSize:12.5,color:T.textPrimary,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{h.name}</div>
+                <div style={{fontFamily:mf,fontSize:10,color:T.textTertiary}}>{h.category}</div>
+              </div>
+              <input type="number" value={h.points} onChange={e=>upH(h.id,Number(e.target.value))}
+                style={{width:48,background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:8,color:T.textPrimary,fontFamily:mf,fontSize:11,padding:"5px",textAlign:"center",outline:"none"}}/>
+              <button onClick={()=>rmH(h.id)} style={{background:"none",border:"none",cursor:"pointer",padding:2}}><Icon name="trash" size={13} color={T.textTertiary}/></button>
+            </div>
+          ))}
+        </Card>
+      )}
+      {showAddHabit&&<AddHabitModal config={config} setConfig={setConfig} onClose={()=>setShowAddHabit(false)}/>}
+    </div>
+  );
+}
+
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
+const TABS=[
+  {id:"dashboard",label:"Home",   icon:"home"},
+  {id:"today",    label:"Today",  icon:"check"},
+  {id:"progress", label:"Progress",icon:"trending_up"},
+  {id:"goals",    label:"Goals",  icon:"target"},
+  {id:"reviews",  label:"Reviews",icon:"calendar"},
+  {id:"profile",  label:"Profile",icon:"user"},
+];
+
+function Forge(){
+  const [tab,setTab]=React.useState("dashboard");
+  const [config,setConfig]=React.useState(defaultConfig);
+  const [logs,setLogs]=React.useState({});
+  const [loaded,setLoaded]=React.useState(false);
+  const [selDate,setSelDate]=React.useState(todayKey());
+  const [quote]=React.useState(()=>{const l=QUOTES;return l[Math.floor(Math.random()*l.length)];});
+
+  React.useEffect(()=>{(async()=>{const[c,l]=await Promise.all([loadCfg(),loadLogs()]);setConfig(c);setLogs(l);setLoaded(true);})();},[]);
+  React.useEffect(()=>{if(loaded)saveCfg(config);},[config,loaded]);
+  React.useEffect(()=>{if(loaded)saveLogs(logs);},[logs,loaded]);
+
+  if(!loaded)return(
+    <div style={{background:T.bg,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+        <Icon name="flame" size={28} color={T.ember}/>
+        <div style={{fontFamily:mf,color:T.textTertiary,fontSize:13,letterSpacing:1}}>WARMING THE FORGE…</div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{background:T.bg,minHeight:"100vh",maxWidth:430,margin:"0 auto",display:"flex",flexDirection:"column",fontFamily:df}}>
+      <div style={{padding:"20px 18px 8px",display:"flex",alignItems:"center",gap:8,borderBottom:`1px solid ${T.borderSoft}`}}>
+        <Icon name="flame" size={20} color={T.ember}/>
+        <span style={{fontFamily:df,fontWeight:800,fontSize:16,color:T.textPrimary,letterSpacing:.5}}>FORGE</span>
+        {config.profile.name&&<span style={{fontFamily:df,fontSize:13,color:T.textTertiary,marginLeft:4}}>· {config.profile.name}</span>}
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 100px"}}>
+        {tab==="dashboard"&&<DashboardTab config={config} logs={logs} quote={quote}/>}
+        {tab==="today"&&<TodayTab config={config} setConfig={setConfig} logs={logs} setLogs={setLogs} selDate={selDate} setSelDate={setSelDate}/>}
+        {tab==="progress"&&<ProgressTab config={config} logs={logs}/>}
+        {tab==="goals"&&<GoalsTab config={config} setConfig={setConfig} logs={logs}/>}
+        {tab==="reviews"&&<ReviewsTab config={config} logs={logs}/>}
+        {tab==="profile"&&<ProfileTab config={config} setConfig={setConfig} logs={logs}/>}
+      </div>
+      <div style={{position:"sticky",bottom:0,background:`${T.surface}F5`,backdropFilter:"blur(12px)",borderTop:`1px solid ${T.border}`,display:"flex",padding:"8px 4px 10px"}}>
+        {TABS.map(t=>{const a=tab===t.id;return(
+          <button key={t.id} onClick={()=>setTab(t.id)}
+            style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",border:"none",cursor:"pointer",padding:"6px 0",borderRadius:10,transition:"background .15s",...(a?{background:T.emberSoft}:{})}}>
+            <Icon name={t.icon} size={20} color={a?T.ember:T.textTertiary} sw={a?2.4:2}/>
+            <span style={{fontFamily:mf,fontSize:9.5,color:a?T.ember:T.textTertiary,letterSpacing:.3}}>{t.label}</span>
+          </button>
+        );})}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Forge/>);
+</script>
+</body>
+</html>
