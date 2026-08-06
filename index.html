@@ -86,35 +86,48 @@ const LOGS_KEY="forge-logs-v2";
 // ─── icon map ─────────────────────────────────────────────────────────────────
 const ICON_MAP={prayer:"heart",bible:"book_open",workout:"dumbbell",steps:"footprints",sleep:"moon",protein:"flame",water:"droplets",creatine:"sparkles",noporn:"lock",read:"book_open",journal:"scroll",screen:"wine",ai:"brain",interview:"briefcase",work:"briefcase",content:"trending_up",trading:"trending_up",hobby:"sparkles"};
 
-// ─── default habits (no phase gating) ────────────────────────────────────────
+// ─── default habits (bucket-based structure) ─────────────────────────────────
 const defaultHabits=[
-  {id:"morningPrayer",name:"Morning Prayer",category:"Spiritual",points:5,icon:"prayer"},
-  {id:"bibleReading",name:"Bible Reading",category:"Spiritual",points:10,icon:"bible"},
-  {id:"nightPrayer",name:"Night Prayer",category:"Spiritual",points:5,icon:"prayer"},
-  {id:"workout",name:"Workout Completed",category:"Fitness",points:20,icon:"workout"},
-  {id:"steps",name:"10,000 Steps / Run",category:"Fitness",points:10,icon:"steps"},
-  {id:"sleep",name:"Sleep 8 Hours",category:"Fitness",points:10,icon:"sleep"},
-  {id:"proteinGoal",name:"Protein Goal (80g+)",category:"Nutrition",points:15,icon:"protein",type:"counter",target:80,unit:"g"},
-  {id:"waterGoal",name:"Water Goal (4L)",category:"Nutrition",points:10,icon:"water",type:"counter",target:4,unit:"L"},
-  {id:"creatine",name:"Creatine",category:"Nutrition",points:3,icon:"creatine"},
-  {id:"eggs",name:"Eggs",category:"Nutrition",points:0,icon:"protein",optional:true},
-  {id:"chicken",name:"Chicken",category:"Nutrition",points:0,icon:"protein",optional:true},
-  {id:"proteinShake",name:"Protein Shake",category:"Nutrition",points:0,icon:"protein",optional:true},
-  {id:"noPorn",name:"No Porn / NoFap",category:"Discipline",points:10,icon:"noporn"},
-  {id:"read10",name:"Read 10 Pages",category:"Discipline",points:5,icon:"read"},
-  {id:"journal",name:"Journal",category:"Discipline",points:5,icon:"journal"},
-  {id:"screenTime",name:"Screen Time Under Target",category:"Discipline",points:0,icon:"screen",optional:true},
-  {id:"aiml",name:"AI/ML Learning",category:"Career",points:7,icon:"ai"},
-  {id:"interview",name:"Google Interview Prep",category:"Career",points:7,icon:"interview"},
-  {id:"workDone",name:"Work Completed",category:"Career",points:6,icon:"work"},
-  {id:"content",name:"Content Creation",category:"Growth",points:5,icon:"content"},
-  {id:"trading",name:"Trading Practice",category:"Growth",points:5,icon:"trading"},
-  {id:"guitar",name:"Guitar",category:"Growth",points:3,icon:"hobby"},
-  {id:"badminton",name:"Badminton",category:"Growth",points:3,icon:"hobby"},
-  {id:"cricket",name:"Cricket",category:"Growth",points:3,icon:"hobby"},
-  {id:"dance",name:"Dance",category:"Growth",points:3,icon:"hobby"},
+  {id:"morningPrayer",name:"Morning Prayer",category:"Spiritual Win",points:5,icon:"prayer"},
+  {id:"bibleReading",name:"Bible Reading",category:"Spiritual Win",points:10,icon:"bible"},
+  {id:"nightPrayer",name:"Night Prayer",category:"Spiritual Win",points:5,icon:"prayer"},
+  {id:"workout",name:"Workout Completed",category:"Physical Win",points:20,icon:"workout"},
+  {id:"steps",name:"10,000 Steps / Run",category:"Physical Win",points:10,icon:"steps"},
+  {id:"sleep",name:"Sleep 8 Hours",category:"Physical Win",points:10,icon:"sleep"},
+  {id:"proteinGoal",name:"Protein Goal (80g+)",category:"Physical Win",points:15,icon:"protein",type:"counter",target:80,unit:"g"},
+  {id:"waterGoal",name:"Water Goal (4L)",category:"Physical Win",points:10,icon:"water",type:"counter",target:4,unit:"L"},
+  {id:"creatine",name:"Creatine",category:"Physical Win",points:3,icon:"creatine"},
+  {id:"multivitamin",name:"Multivitamin",category:"Physical Win",points:0,icon:"sparkles",optional:true},
+  {id:"omega3",name:"Omega 3",category:"Physical Win",points:0,icon:"sparkles",optional:true},
+  {id:"collagen",name:"Collagen",category:"Physical Win",points:0,icon:"sparkles",optional:true},
+  {id:"proteinShake",name:"Protein Shake",category:"Physical Win",points:0,icon:"protein",optional:true},
+  {id:"read10",name:"Read 10 Pages",category:"Mental Win",points:5,icon:"read"},
+  {id:"journal",name:"Journal",category:"Mental Win",points:5,icon:"journal"},
+  {id:"workDone",name:"Work Completed",category:"Financial Win",points:6,icon:"work"},
+  {id:"trading",name:"Trading Practice",category:"Financial Win",points:5,icon:"trading"},
+  {id:"content",name:"Content Creation (IG/YT)",category:"Skills — Building",points:5,icon:"content"},
+  {id:"aiml",name:"AI/ML Learning",category:"Skills — Building",points:7,icon:"ai"},
+  {id:"interview",name:"Google Interview Prep",category:"Skills — Building",points:7,icon:"interview"},
+  {id:"guitar",name:"Guitar",category:"Skills — Practice",points:3,icon:"hobby"},
+  {id:"badminton",name:"Badminton",category:"Skills — Practice",points:3,icon:"hobby"},
+  {id:"cricket",name:"Cricket",category:"Skills — Practice",points:3,icon:"hobby"},
+  {id:"dance",name:"Dance",category:"Skills — Practice",points:3,icon:"hobby"},
+  {id:"football",name:"Football",category:"Skills — Practice",points:3,icon:"hobby"},
+  {id:"cooking",name:"Cooking",category:"Skills — Practice",points:3,icon:"hobby"},
+  {id:"noPorn",name:"No Porn / NoFap",category:"Lifestyle",points:10,icon:"noporn"},
+  {id:"cleanSpeech",name:"Clean Speech",category:"Lifestyle",points:5,icon:"heart"},
+  {id:"screenTime",name:"Screen Time Under Target",category:"Lifestyle",points:0,icon:"screen",optional:true},
 ];
-const BASE_CATS=["Spiritual","Fitness","Nutrition","Discipline","Career","Growth"];
+const BUCKETS=[
+  {id:"spiritual",name:"Spiritual Win",emoji:"🙏"},
+  {id:"physical",name:"Physical Win",emoji:"💪"},
+  {id:"mental",name:"Mental Win",emoji:"🧠"},
+  {id:"financial",name:"Financial Win",emoji:"💰"},
+  {id:"skillsBuild",name:"Skills — Building",emoji:"🚀"},
+  {id:"skillsPractice",name:"Skills — Practice",emoji:"🎯"},
+  {id:"lifestyle",name:"Lifestyle",emoji:"🌿"},
+];
+const BASE_CATS=BUCKETS.map(b=>b.name);
 const defaultGoals=[
   {id:"g1",name:"Become excellent at my AI/ML job",category:"Career",progress:20},
   {id:"g2",name:"Land a Google AI/ML role",category:"Career",progress:10},
@@ -149,20 +162,37 @@ const saveCfg=async c=>{try{await window.storage.set(CONFIG_KEY,JSON.stringify(c
 const loadLogs=async()=>{try{const r=await window.storage.get(LOGS_KEY);if(r?.value)return JSON.parse(r.value);}catch(e){}return{};};
 const saveLogs=async l=>{try{await window.storage.set(LOGS_KEY,JSON.stringify(l));}catch(e){}};
 
-// ─── scoring (NO phase gating) ────────────────────────────────────────────────
+// ─── scoring (50% streak threshold, bucket-based) ────────────────────────────
 const activeFor=cfg=>cfg.habits;
 const scoredFor=cfg=>activeFor(cfg).filter(h=>!h.optional&&h.points>0);
-function dayScore(cfg,log){
-  const hs=scoredFor(cfg),tot=hs.reduce((s,h)=>s+h.points,0);
-  if(!tot)return 0;
+
+function bucketScore(cfg,log,bucketName){
+  const hs=scoredFor(cfg).filter(h=>h.category===bucketName);
+  const tot=hs.reduce((s,h)=>s+h.points,0);
+  if(!tot)return null;
   let earn=0;
   hs.forEach(h=>{const v=log?log[h.id]:undefined;if(h.type==="counter"){if(typeof v==="number"&&v>=h.target)earn+=h.points;else if(typeof v==="number")earn+=h.points*Math.min(1,v/h.target);}else if(v===true)earn+=h.points;});
   return Math.round((earn/tot)*100);
 }
-const lbl=s=>s>=95?{l:"Elite Day",c:T.ember}:s>=85?{l:"Great Day",c:T.ember}:s>=70?{l:"Good Day",c:T.steel}:{l:"Needs Improvement",c:T.textTertiary};
-function curStreak(cfg,logs,end){let n=0,c=end;for(let i=0;i<3650;i++){if(dayScore(cfg,logs[c])>=70){n++;c=addDays(c,-1);}else break;}return n;}
-function longestStreak(cfg,logs){const ks=Object.keys(logs).sort();let lng=0,cur=0,p=null;ks.forEach(k=>{if(dayScore(cfg,logs[k])>=70){cur=(p&&addDays(p,1)===k)?cur+1:1;lng=Math.max(lng,cur);}else cur=0;p=k;});return lng;}
-function heatCol(s){if(s==null)return T.borderSoft;if(s>=95)return"#FFE9D6";if(s>=85)return T.ember;if(s>=70)return"#B9683B";if(s>=40)return T.steel;return T.miss;}
+
+function dayScore(cfg,log){
+  const activeBuckets=BUCKETS.map(b=>bucketScore(cfg,log,b.name)).filter(s=>s!==null);
+  if(!activeBuckets.length)return 0;
+  return Math.round(activeBuckets.reduce((a,b)=>a+b,0)/activeBuckets.length);
+}
+
+function bucketWins(cfg,log){
+  return BUCKETS.filter(b=>{const s=bucketScore(cfg,log,b.name);return s!==null&&s>=70;}).length;
+}
+function totalActiveBuckets(cfg){
+  return BUCKETS.filter(b=>scoredFor(cfg).some(h=>h.category===b.name)).length;
+}
+
+// 50% threshold for streak
+const lbl=s=>s>=95?{l:"Elite Day",c:T.ember}:s>=85?{l:"Great Day",c:T.ember}:s>=70?{l:"Good Day",c:T.steel}:s>=50?{l:"Active Day",c:T.steel}:{l:"Missed",c:T.textTertiary};
+function curStreak(cfg,logs,end){let n=0,c=end;for(let i=0;i<3650;i++){if(dayScore(cfg,logs[c])>=50){n++;c=addDays(c,-1);}else break;}return n;}
+function longestStreak(cfg,logs){const ks=Object.keys(logs).sort();let lng=0,cur=0,p=null;ks.forEach(k=>{if(dayScore(cfg,logs[k])>=50){cur=(p&&addDays(p,1)===k)?cur+1:1;lng=Math.max(lng,cur);}else cur=0;p=k;});return lng;}
+function heatCol(s){if(s==null)return T.borderSoft;if(s>=95)return"#FFE9D6";if(s>=85)return T.ember;if(s>=70)return"#B9683B";if(s>=50)return T.steel;return T.miss;}
 
 // ─── atoms ────────────────────────────────────────────────────────────────────
 const Card=({children,style})=>(<div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:18,...style}}>{children}</div>);
@@ -222,8 +252,83 @@ function HabitRow({habit,value,onToggle,onCounter}){
   );
 }
 
-// ─── StatCard ─────────────────────────────────────────────────────────────────
-function StatCard({icon,label,value}){
+// ─── Protein Sources multi-select ────────────────────────────────────────────
+const PROTEIN_SOURCES=["Chicken","Paneer","Boiled Egg","Protein/Oat Shake","Fish","Other"];
+function ProteinSources({value,onChange}){
+  const selected=value||[];
+  const toggle=src=>{
+    const next=selected.includes(src)?selected.filter(s=>s!==src):[...selected,src];
+    onChange(next);
+  };
+  return (
+    <div style={{padding:"12px 16px",borderBottom:`1px solid ${T.borderSoft}`}}>
+      <div style={{fontFamily:df,fontSize:12,color:T.textTertiary,marginBottom:8}}>Protein sources today</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+        {PROTEIN_SOURCES.map(src=>{
+          const on=selected.includes(src);
+          return (
+            <button key={src} onClick={()=>toggle(src)}
+              style={{padding:"5px 11px",borderRadius:999,fontSize:12,fontFamily:df,cursor:"pointer",
+                border:`1.5px solid ${on?T.ember:T.border}`,
+                background:on?T.emberSoft:"transparent",
+                color:on?T.ember:T.textSecondary,transition:"all .12s"}}>
+              {src}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── BucketCard — win bucket with mini progress bar ──────────────────────────
+function BucketCard({bucket,habits,log,onToggle,onCounter,onProteinSources}){
+  const [open,setOpen]=React.useState(true);
+  const scored=habits.filter(h=>!h.optional&&h.points>0);
+  const tot=scored.reduce((s,h)=>s+h.points,0);
+  let earn=0;
+  scored.forEach(h=>{const v=log[h.id];if(h.type==="counter"){if(typeof v==="number"&&v>=h.target)earn+=h.points;else if(typeof v==="number")earn+=h.points*Math.min(1,v/h.target);}else if(v===true)earn+=h.points;});
+  const pct=tot?Math.round((earn/tot)*100):0;
+  const won=pct>=70;
+  const doneCount=scored.filter(h=>h.type==="counter"?(log[h.id]>=h.target):log[h.id]===true).length;
+  const bucketColor=won?T.ember:pct>=50?T.steel:T.textTertiary;
+  const showProtein=bucket.name==="Physical Win";
+
+  return (
+    <div style={{background:T.surface,border:`1px solid ${won?T.ember+"44":T.border}`,borderRadius:20,overflow:"hidden",
+      boxShadow:won?`0 0 16px ${T.emberSoft}`:"none",transition:"box-shadow .3s"}}>
+      {/* bucket header */}
+      <button onClick={()=>setOpen(v=>!v)}
+        style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"14px 16px",background:"transparent",border:"none",cursor:"pointer"}}>
+        <div style={{fontSize:18,lineHeight:1}}>{bucket.emoji}</div>
+        <div style={{flex:1,textAlign:"left"}}>
+          <div style={{fontFamily:df,fontWeight:700,fontSize:14,color:T.textPrimary}}>{bucket.name}</div>
+          <div style={{marginTop:5,height:4,background:T.surfaceRaised,borderRadius:999,overflow:"hidden",width:"100%"}}>
+            <div style={{width:`${pct}%`,height:"100%",background:bucketColor,borderRadius:999,transition:"width .5s ease"}}/>
+          </div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2,flexShrink:0}}>
+          <div style={{fontFamily:mf,fontSize:13,fontWeight:700,color:bucketColor}}>{pct}%</div>
+          <div style={{fontFamily:mf,fontSize:10,color:T.textTertiary}}>{doneCount}/{scored.length}</div>
+        </div>
+        {won&&<div style={{fontSize:14}}>🏆</div>}
+        <Icon name={open?"chevron_d":"chevron_r"} size={15} color={T.textTertiary}/>
+      </button>
+
+      {/* habit rows */}
+      {open&&(
+        <div style={{borderTop:`1px solid ${T.borderSoft}`}}>
+          {habits.map(h=>(
+            <HabitRow key={h.id} habit={h} value={log[h.id]} onToggle={()=>onToggle(h.id,h)} onCounter={v=>onCounter(h.id,v)}/>
+          ))}
+          {showProtein&&(
+            <ProteinSources value={log.__proteinSources} onChange={v=>onProteinSources(v)}/>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
   return (
     <Card style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
       {icon}
@@ -379,10 +484,10 @@ function DashboardTab({config,logs,quote}){
   const ts=dayScore(config,logs[tk]),ys=logs[yk]?dayScore(config,logs[yk]):null;
   const cs=curStreak(config,logs,tk),ls=longestStreak(config,logs);
   const yr=`${new Date().getFullYear()}-01-01`;
-  const done=Object.keys(logs).filter(k=>k>=yr&&dayScore(config,logs[k])>=70).length;
-  const hs=activeFor(config).filter(h=>!h.optional&&h.points>0);
+  const done=Object.keys(logs).filter(k=>k>=yr&&dayScore(config,logs[k])>=50).length;
   const log=logs[tk]||{};
-  const rem=hs.filter(h=>!(h.type==="counter"?log[h.id]>=h.target:log[h.id]===true)).length;
+  const wins=bucketWins(config,log),total=totalActiveBuckets(config);
+  const hs=activeFor(config).filter(h=>!h.optional&&h.points>0);
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div>
@@ -406,7 +511,27 @@ function DashboardTab({config,logs,quote}){
             )}
           </div>
         </div>
-        <div style={{marginTop:12,fontFamily:df,fontSize:12.5,color:T.textSecondary}}>{rem===0?"Everything forged for today. 🔥":`${rem} habit${rem===1?"":"s"} remaining today.`}</div>
+        {/* bucket win row */}
+        <div style={{marginTop:14,paddingTop:12,borderTop:`1px solid ${T.borderSoft}`}}>
+          <div style={{fontFamily:mf,fontSize:10,color:T.textTertiary,letterSpacing:1,marginBottom:8}}>WIN BUCKETS TODAY — {wins}/{total}</div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {BUCKETS.map(b=>{
+              const s=bucketScore(config,log,b.name);
+              const won=s!==null&&s>=70;
+              const active=s!==null;
+              return (
+                <div key={b.id}
+                  style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,opacity:active?1:0.2}}>
+                  <div style={{fontSize:20,filter:won?`drop-shadow(0 0 6px ${T.ember})`:"none",transition:"filter .3s"}}>{b.emoji}</div>
+                  <div style={{fontFamily:mf,fontSize:9,color:won?T.ember:T.textTertiary,letterSpacing:.3}}>{s===null?"—":s+"%"}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{marginTop:10,fontFamily:df,fontSize:12.5,color:T.textSecondary}}>
+          {wins===total&&total>0?"All buckets won today 🔥":wins===0?"Start your first bucket — every habit counts.":wins>=Math.ceil(total/2)?`${total-wins} bucket${total-wins===1?"":"s"} left to complete your day.`:`${wins} down, ${total-wins} to go.`}
+        </div>
       </Card>
       <div style={{display:"flex",gap:12}}>
         <StatCard icon={<Icon name="flame" size={16} color={T.ember}/>} label="Current Streak" value={`${cs}d`}/>
@@ -419,17 +544,15 @@ function DashboardTab({config,logs,quote}){
     </div>
   );
 }
-
 // ─── TODAY TAB ────────────────────────────────────────────────────────────────
 function TodayTab({config,setConfig,logs,setLogs,selDate,setSelDate}){
-  const [col,setCol]=React.useState({});
   const [showAddHabit,setShowAddHabit]=React.useState(false);
   const habits=activeFor(config),log=logs[selDate]||{},score=dayScore(config,log);
+  const wins=bucketWins(config,log),total=totalActiveBuckets(config);
   const toggle=(id,h)=>{if(h.type==="counter")return;setLogs({...logs,[selDate]:{...log,[id]:!log[id]}});};
   const setCtr=(id,v)=>{setLogs({...logs,[selDate]:{...log,[id]:v}});};
-  const yk=addDays(selDate,-1),ys=logs[yk]?dayScore(config,logs[yk]):null,missed=ys!==null&&ys<70;
-  const rem=activeFor(config).filter(h=>!h.optional&&h.points>0&&!(log[h.id]===true||(h.type==="counter"&&log[h.id]>=h.target))).length;
-  const allCats=React.useMemo(()=>{const s=new Set(BASE_CATS);config.habits.forEach(h=>{if(h.category)s.add(h.category);});return[...s];},[config.habits]);
+  const setProteinSources=v=>{setLogs({...logs,[selDate]:{...log,__proteinSources:v}});};
+  const yk=addDays(selDate,-1),ys=logs[yk]?dayScore(config,logs[yk]):null,missed=ys!==null&&ys<50;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -441,36 +564,41 @@ function TodayTab({config,setConfig,logs,setLogs,selDate,setSelDate}){
         <button onClick={()=>selDate!==todayKey()&&setSelDate(addDays(selDate,1))} style={{...navBtn,opacity:selDate===todayKey()?.3:1}}><Icon name="chevron_r" size={18} color={T.textSecondary}/></button>
       </div>
       {missed&&(
-        <Card style={{background:T.steelSoft,border:`1px solid ${T.steel}33`}}>
+        <div style={{background:T.steelSoft,border:`1px solid ${T.steel}33`,borderRadius:16,padding:"12px 14px"}}>
           <div style={{fontFamily:df,fontWeight:600,fontSize:13,color:T.textPrimary,marginBottom:2}}>Yesterday was missed.</div>
           <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,lineHeight:1.5}}>Today is your chance to restart. Don't miss twice.</div>
-        </Card>
+        </div>
       )}
       <div style={{display:"flex",alignItems:"center",gap:14}}>
         <ForgeRing score={score} size={92}/>
         <div style={{flex:1}}>
           <div style={{fontFamily:df,fontWeight:700,fontSize:15,color:lbl(score).c}}>{lbl(score).l}</div>
-          <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,marginTop:2}}>{rem} habit{rem===1?"":"s"} remaining</div>
+          <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,marginTop:3}}>{wins}/{total} buckets won today</div>
+          <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
+            {BUCKETS.map(b=>{
+              const s=bucketScore(config,log,b.name);
+              const won=s!==null&&s>=70;
+              const active=s!==null;
+              return (
+                <div key={b.id} title={`${b.name}: ${s===null?"—":s+"%"}`}
+                  style={{fontSize:16,opacity:active?(won?1:0.3):0.12,filter:won?`drop-shadow(0 0 4px ${T.ember})`:"none",transition:"all .2s"}}>
+                  {b.emoji}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
-      {allCats.map(cat=>{
-        const items=habits.filter(h=>h.category===cat);if(!items.length)return null;
-        const isCol=col[cat],dn=items.filter(h=>h.type==="counter"?(log[h.id]>=h.target):log[h.id]===true).length;
+      {BUCKETS.map(bucket=>{
+        const items=habits.filter(h=>h.category===bucket.name);
+        if(!items.length)return null;
         return (
-          <Card key={cat} style={{padding:0,overflow:"hidden"}}>
-            <button onClick={()=>setCol(c=>({...c,[cat]:!c[cat]}))} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",background:"transparent",border:"none",padding:"14px 16px",cursor:"pointer"}}>
-              <span style={{fontFamily:df,fontWeight:700,fontSize:14,color:T.textPrimary}}>{cat}</span>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <span style={{fontFamily:mf,fontSize:11,color:T.textTertiary}}>{dn}/{items.length}</span>
-                {isCol?<Icon name="chevron_r" size={16} color={T.textTertiary}/>:<Icon name="chevron_d" size={16} color={T.textTertiary}/>}
-              </div>
-            </button>
-            {!isCol&&<div style={{borderTop:`1px solid ${T.borderSoft}`}}>{items.map(h=><HabitRow key={h.id} habit={h} value={log[h.id]} onToggle={()=>toggle(h.id,h)} onCounter={v=>setCtr(h.id,v)}/>)}</div>}
-          </Card>
+          <BucketCard key={bucket.id} bucket={bucket} habits={items} log={log}
+            onToggle={toggle} onCounter={setCtr} onProteinSources={setProteinSources}/>
         );
       })}
       <button onClick={()=>setShowAddHabit(true)}
-        style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"13px",borderRadius:16,background:"transparent",border:`1.5px dashed ${T.border}`,cursor:"pointer",width:"100%",transition:"border-color .15s"}}
+        style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"13px",borderRadius:16,background:"transparent",border:`1.5px dashed ${T.border}`,cursor:"pointer",width:"100%"}}
         onMouseEnter={e=>e.currentTarget.style.borderColor=T.ember}
         onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
         <Icon name="plus" size={16} color={T.ember}/>
