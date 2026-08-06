@@ -18,7 +18,7 @@
     #root{width:100%;max-width:430px}
     input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
     input[type=number]{-moz-appearance:textfield}
-    input[type=range]{cursor:pointer}
+    input[type=range]{cursor:pointer;accent-color:#FF6A35}
     ::-webkit-scrollbar{width:4px;height:4px}
     ::-webkit-scrollbar-track{background:transparent}
     ::-webkit-scrollbar-thumb{background:#2A2D32;border-radius:99px}
@@ -35,10 +35,14 @@
 <script src="https://unpkg.com/lucide@0.447.0/dist/umd/lucide.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
 <script>
-window.storage={get:function(k){return Promise.resolve({value:localStorage.getItem(k)});},set:function(k,v){localStorage.setItem(k,v);return Promise.resolve();}};
+window.storage={
+  get:function(k){return Promise.resolve({value:localStorage.getItem(k)});},
+  set:function(k,v){localStorage.setItem(k,v);return Promise.resolve();}
+};
 </script>
 <script type="text/babel" data-type="module">
 
+// ─── SVGs ─────────────────────────────────────────────────────────────────────
 const SVGS={
   flame:[[["path",{d:"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"}]]],
   check:[[["polyline",{points:"20 6 9 17 4 12"}]]],
@@ -69,24 +73,30 @@ const SVGS={
   unlock:[[["rect",{width:"18",height:"11",x:"3",y:"11",rx:"2",ry:"2"}],["path",{d:"M7 11V7a5 5 0 0 1 9.9-1"}]]],
   trash:[[["path",{d:"M3 6h18"}],["path",{d:"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"}],["path",{d:"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"}]]],
 };
-
 function Icon({name,size=18,color="#9A9DA3",sw=2}){
   const data=SVGS[name]||SVGS.sparkles;
-  const children=data[0].map(([tag,attrs],i)=>React.createElement(tag,{key:i,...attrs}));
-  return React.createElement('svg',{xmlns:"http://www.w3.org/2000/svg",width:size,height:size,viewBox:"0 0 24 24",fill:"none",stroke:color,strokeWidth:sw,strokeLinecap:"round",strokeLinejoin:"round",style:{flexShrink:0}},...children);
+  const ch=data[0].map(([tag,attrs],i)=>React.createElement(tag,{key:i,...attrs}));
+  return React.createElement('svg',{xmlns:"http://www.w3.org/2000/svg",width:size,height:size,viewBox:"0 0 24 24",fill:"none",stroke:color,strokeWidth:sw,strokeLinecap:"round",strokeLinejoin:"round",style:{flexShrink:0}},...ch);
 }
 
-// ─── design tokens ────────────────────────────────────────────────────────────
+// ─── tokens ───────────────────────────────────────────────────────────────────
 const T={bg:"#0D0E10",surface:"#17191C",surfaceRaised:"#1F2226",border:"#2A2D32",borderSoft:"#212327",textPrimary:"#F3F1EC",textSecondary:"#9A9DA3",textTertiary:"#5C6066",ember:"#FF6A35",emberDim:"#7A3B22",emberSoft:"rgba(255,106,53,0.14)",steel:"#6E93A6",steelSoft:"rgba(110,147,166,0.14)",success:"#6FAE7C",miss:"#C15C51"};
-const df="'Inter',sans-serif";
-const mf="'JetBrains Mono','SF Mono',monospace";
-const CONFIG_KEY="forge-config-v2";
-const LOGS_KEY="forge-logs-v2";
-
-// ─── icon map ─────────────────────────────────────────────────────────────────
+const df="'Inter',sans-serif", mf="'JetBrains Mono','SF Mono',monospace";
+const CONFIG_KEY="forge-config-v2", LOGS_KEY="forge-logs-v2";
 const ICON_MAP={prayer:"heart",bible:"book_open",workout:"dumbbell",steps:"footprints",sleep:"moon",protein:"flame",water:"droplets",creatine:"sparkles",noporn:"lock",read:"book_open",journal:"scroll",screen:"wine",ai:"brain",interview:"briefcase",work:"briefcase",content:"trending_up",trading:"trending_up",hobby:"sparkles"};
 
-// ─── default habits (bucket-based structure) ─────────────────────────────────
+// ─── buckets ──────────────────────────────────────────────────────────────────
+const BUCKETS=[
+  {id:"spiritual",  name:"Spiritual Win",     emoji:"🙏"},
+  {id:"physical",   name:"Physical Win",      emoji:"💪"},
+  {id:"mental",     name:"Mental Win",        emoji:"🧠"},
+  {id:"financial",  name:"Financial Win",     emoji:"💰"},
+  {id:"skillsBuild",name:"Skills — Building", emoji:"🚀"},
+  {id:"skillsPrac", name:"Skills — Practice", emoji:"🎯"},
+  {id:"lifestyle",  name:"Lifestyle",         emoji:"🌿"},
+];
+
+// ─── default data ─────────────────────────────────────────────────────────────
 const defaultHabits=[
   {id:"morningPrayer",name:"Morning Prayer",category:"Spiritual Win",points:5,icon:"prayer"},
   {id:"bibleReading",name:"Bible Reading",category:"Spiritual Win",points:10,icon:"bible"},
@@ -97,6 +107,7 @@ const defaultHabits=[
   {id:"proteinGoal",name:"Protein Goal (80g+)",category:"Physical Win",points:15,icon:"protein",type:"counter",target:80,unit:"g"},
   {id:"waterGoal",name:"Water Goal (4L)",category:"Physical Win",points:10,icon:"water",type:"counter",target:4,unit:"L"},
   {id:"creatine",name:"Creatine",category:"Physical Win",points:3,icon:"creatine"},
+  {id:"noSugar",name:"No Sugar",category:"Physical Win",points:5,icon:"lock"},
   {id:"multivitamin",name:"Multivitamin",category:"Physical Win",points:0,icon:"sparkles",optional:true},
   {id:"omega3",name:"Omega 3",category:"Physical Win",points:0,icon:"sparkles",optional:true},
   {id:"collagen",name:"Collagen",category:"Physical Win",points:0,icon:"sparkles",optional:true},
@@ -108,6 +119,7 @@ const defaultHabits=[
   {id:"content",name:"Content Creation (IG/YT)",category:"Skills — Building",points:5,icon:"content"},
   {id:"aiml",name:"AI/ML Learning",category:"Skills — Building",points:7,icon:"ai"},
   {id:"interview",name:"Google Interview Prep",category:"Skills — Building",points:7,icon:"interview"},
+  {id:"calisthenics",name:"Calisthenics",category:"Skills — Building",points:5,icon:"workout"},
   {id:"guitar",name:"Guitar",category:"Skills — Practice",points:3,icon:"hobby"},
   {id:"badminton",name:"Badminton",category:"Skills — Practice",points:3,icon:"hobby"},
   {id:"cricket",name:"Cricket",category:"Skills — Practice",points:3,icon:"hobby"},
@@ -118,16 +130,6 @@ const defaultHabits=[
   {id:"cleanSpeech",name:"Clean Speech",category:"Lifestyle",points:5,icon:"heart"},
   {id:"screenTime",name:"Screen Time Under Target",category:"Lifestyle",points:0,icon:"screen",optional:true},
 ];
-const BUCKETS=[
-  {id:"spiritual",name:"Spiritual Win",emoji:"🙏"},
-  {id:"physical",name:"Physical Win",emoji:"💪"},
-  {id:"mental",name:"Mental Win",emoji:"🧠"},
-  {id:"financial",name:"Financial Win",emoji:"💰"},
-  {id:"skillsBuild",name:"Skills — Building",emoji:"🚀"},
-  {id:"skillsPractice",name:"Skills — Practice",emoji:"🎯"},
-  {id:"lifestyle",name:"Lifestyle",emoji:"🌿"},
-];
-const BASE_CATS=BUCKETS.map(b=>b.name);
 const defaultGoals=[
   {id:"g1",name:"Become excellent at my AI/ML job",category:"Career",progress:20},
   {id:"g2",name:"Land a Google AI/ML role",category:"Career",progress:10},
@@ -157,12 +159,28 @@ const dayLabel=k=>new Date(k+"T00:00:00").toLocaleDateString(undefined,{weekday:
 const greet=()=>{const h=new Date().getHours();return h<5?"Still up":h<12?"Good morning":h<17?"Good afternoon":h<21?"Good evening":"Winding down";};
 
 // ─── storage ──────────────────────────────────────────────────────────────────
-const loadCfg=async()=>{try{const r=await window.storage.get(CONFIG_KEY);if(r?.value){const saved=JSON.parse(r.value);return{...defaultConfig,...saved,profile:{...defaultConfig.profile,...(saved.profile||{})}};}}catch(e){}return defaultConfig;};
+const CAT_MIGRATION={"Spiritual":"Spiritual Win","Fitness":"Physical Win","Nutrition":"Physical Win","Discipline":"Lifestyle","Career":"Skills — Building","Growth":"Skills — Practice"};
+const migrateHabits=habits=>habits.map(h=>({...h,category:CAT_MIGRATION[h.category]||h.category}));
+
+const loadCfg=async()=>{
+  try{
+    const r=await window.storage.get(CONFIG_KEY);
+    if(r?.value){
+      const saved=JSON.parse(r.value);
+      const migratedHabits=migrateHabits(saved.habits||defaultHabits);
+      // merge: add any new default habits that aren't in saved config
+      const savedIds=new Set(migratedHabits.map(h=>h.id));
+      const newHabits=defaultHabits.filter(h=>!savedIds.has(h.id));
+      return{...defaultConfig,...saved,habits:[...migratedHabits,...newHabits],profile:{...defaultConfig.profile,...(saved.profile||{})}};
+    }
+  }catch(e){}
+  return defaultConfig;
+};
 const saveCfg=async c=>{try{await window.storage.set(CONFIG_KEY,JSON.stringify(c));}catch(e){}};
 const loadLogs=async()=>{try{const r=await window.storage.get(LOGS_KEY);if(r?.value)return JSON.parse(r.value);}catch(e){}return{};};
 const saveLogs=async l=>{try{await window.storage.set(LOGS_KEY,JSON.stringify(l));}catch(e){}};
 
-// ─── scoring (50% streak threshold, bucket-based) ────────────────────────────
+// ─── scoring ──────────────────────────────────────────────────────────────────
 const activeFor=cfg=>cfg.habits;
 const scoredFor=cfg=>activeFor(cfg).filter(h=>!h.optional&&h.points>0);
 
@@ -171,14 +189,20 @@ function bucketScore(cfg,log,bucketName){
   const tot=hs.reduce((s,h)=>s+h.points,0);
   if(!tot)return null;
   let earn=0;
-  hs.forEach(h=>{const v=log?log[h.id]:undefined;if(h.type==="counter"){if(typeof v==="number"&&v>=h.target)earn+=h.points;else if(typeof v==="number")earn+=h.points*Math.min(1,v/h.target);}else if(v===true)earn+=h.points;});
+  hs.forEach(h=>{
+    const v=log?log[h.id]:undefined;
+    if(h.type==="counter"){
+      if(typeof v==="number"&&v>=h.target)earn+=h.points;
+      else if(typeof v==="number")earn+=h.points*Math.min(1,v/h.target);
+    }else if(v===true)earn+=h.points;
+  });
   return Math.round((earn/tot)*100);
 }
 
 function dayScore(cfg,log){
-  const activeBuckets=BUCKETS.map(b=>bucketScore(cfg,log,b.name)).filter(s=>s!==null);
-  if(!activeBuckets.length)return 0;
-  return Math.round(activeBuckets.reduce((a,b)=>a+b,0)/activeBuckets.length);
+  const scores=BUCKETS.map(b=>bucketScore(cfg,log,b.name)).filter(s=>s!==null);
+  if(!scores.length)return 0;
+  return Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
 }
 
 function bucketWins(cfg,log){
@@ -188,25 +212,48 @@ function totalActiveBuckets(cfg){
   return BUCKETS.filter(b=>scoredFor(cfg).some(h=>h.category===b.name)).length;
 }
 
-// 50% threshold for streak
 const lbl=s=>s>=95?{l:"Elite Day",c:T.ember}:s>=85?{l:"Great Day",c:T.ember}:s>=70?{l:"Good Day",c:T.steel}:s>=50?{l:"Active Day",c:T.steel}:{l:"Missed",c:T.textTertiary};
-function curStreak(cfg,logs,end){let n=0,c=end;for(let i=0;i<3650;i++){if(dayScore(cfg,logs[c])>=50){n++;c=addDays(c,-1);}else break;}return n;}
-function longestStreak(cfg,logs){const ks=Object.keys(logs).sort();let lng=0,cur=0,p=null;ks.forEach(k=>{if(dayScore(cfg,logs[k])>=50){cur=(p&&addDays(p,1)===k)?cur+1:1;lng=Math.max(lng,cur);}else cur=0;p=k;});return lng;}
+
+function curStreak(cfg,logs,end){
+  let n=0,c=end;
+  for(let i=0;i<3650;i++){if(dayScore(cfg,logs[c])>=50){n++;c=addDays(c,-1);}else break;}
+  return n;
+}
+function longestStreak(cfg,logs){
+  const ks=Object.keys(logs).sort();let lng=0,cur=0,p=null;
+  ks.forEach(k=>{if(dayScore(cfg,logs[k])>=50){cur=(p&&addDays(p,1)===k)?cur+1:1;lng=Math.max(lng,cur);}else cur=0;p=k;});
+  return lng;
+}
 function heatCol(s){if(s==null)return T.borderSoft;if(s>=95)return"#FFE9D6";if(s>=85)return T.ember;if(s>=70)return"#B9683B";if(s>=50)return T.steel;return T.miss;}
 
 // ─── atoms ────────────────────────────────────────────────────────────────────
-const Card=({children,style})=>(<div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:18,...style}}>{children}</div>);
-const ST=({children})=>(<div style={{fontFamily:df,fontWeight:700,fontSize:12,color:T.textTertiary,letterSpacing:.8,textTransform:"uppercase",marginBottom:-4}}>{children}</div>);
-const Pill=({children,color=T.textSecondary})=>(<span style={{fontFamily:mf,fontSize:11,letterSpacing:.4,color,padding:"3px 9px",borderRadius:999,border:`1px solid ${T.border}`}}>{children}</span>);
+const Card=({children,style})=>(
+  <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,padding:18,...style}}>{children}</div>
+);
+const ST=({children})=>(
+  <div style={{fontFamily:df,fontWeight:700,fontSize:12,color:T.textTertiary,letterSpacing:.8,textTransform:"uppercase",marginBottom:2}}>{children}</div>
+);
+const Pill=({children,color=T.textSecondary})=>(
+  <span style={{fontFamily:mf,fontSize:11,color,padding:"3px 9px",borderRadius:999,border:`1px solid ${T.border}`}}>{children}</span>
+);
 const HIcon=({name,size=17,color})=><Icon name={ICON_MAP[name]||"sparkles"} size={size} color={color||T.textSecondary}/>;
-const navBtn={width:34,height:34,borderRadius:12,border:`1px solid ${T.border}`,background:T.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"};
+const navBtnStyle={width:34,height:34,borderRadius:12,border:`1px solid ${T.border}`,background:T.surface,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"};
 
-// ─── ForgeRing ────────────────────────────────────────────────────────────────
+function StatCard({icon,label,value}){
+  return(
+    <Card style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
+      {icon}
+      <div style={{fontFamily:mf,fontWeight:700,fontSize:20,color:T.textPrimary}}>{value}</div>
+      <div style={{fontFamily:df,fontSize:11.5,color:T.textTertiary}}>{label}</div>
+    </Card>
+  );
+}
+
 function ForgeRing({score,size=148}){
   const stroke=12,r=(size-stroke)/2,c=2*Math.PI*r,dash=(score/100)*c;
-  const hc=score>=90?"#FFE9D6":score>=70?T.ember:score>=40?"#D97A46":T.steel;
+  const hc=score>=90?"#FFE9D6":score>=70?T.ember:score>=50?"#D97A46":T.steel;
   const glow=Math.min(1,score/100);
-  return (
+  return(
     <div style={{position:"relative",width:size,height:size}}>
       <svg width={size} height={size} style={{transform:"rotate(-90deg)"}}>
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={T.borderSoft} strokeWidth={stroke}/>
@@ -222,10 +269,27 @@ function ForgeRing({score,size=148}){
   );
 }
 
+function CalHeat({config,logs,weeks=12}){
+  const days=[];let c=todayKey();
+  for(let i=0;i<weeks*7;i++){days.unshift(c);c=addDays(c,-1);}
+  const grid=[];for(let i=0;i<weeks;i++)grid.push(days.slice(i*7,i*7+7));
+  return(
+    <div style={{display:"flex",gap:3,overflowX:"auto",paddingBottom:4}}>
+      {grid.map((col,ci)=>(
+        <div key={ci} style={{display:"flex",flexDirection:"column",gap:3}}>
+          {col.map(k=>{const s=logs[k]?dayScore(config,logs[k]):null;return(
+            <div key={k} title={`${k}: ${s==null?"—":s+"%"}`} style={{width:11,height:11,borderRadius:3,background:heatCol(s)}}/>
+          );})}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── HabitRow ─────────────────────────────────────────────────────────────────
 function HabitRow({habit,value,onToggle,onCounter}){
-  const done=habit.type==="counter"?(value>=habit.target):value===true;
-  return (
+  const done=habit.type==="counter"?(typeof value==="number"&&value>=habit.target):value===true;
+  return(
     <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderBottom:`1px solid ${T.borderSoft}`}}>
       <div style={{width:32,height:32,borderRadius:10,background:T.surfaceRaised,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
         <HIcon name={habit.icon} size={17} color={done?T.ember:T.textSecondary}/>
@@ -252,7 +316,7 @@ function HabitRow({habit,value,onToggle,onCounter}){
   );
 }
 
-// ─── Protein Sources multi-select ────────────────────────────────────────────
+// ─── ProteinSources ───────────────────────────────────────────────────────────
 const PROTEIN_SOURCES=["Chicken","Paneer","Boiled Egg","Protein/Oat Shake","Fish","Other"];
 function ProteinSources({value,onChange}){
   const selected=value||[];
@@ -260,17 +324,16 @@ function ProteinSources({value,onChange}){
     const next=selected.includes(src)?selected.filter(s=>s!==src):[...selected,src];
     onChange(next);
   };
-  return (
+  return(
     <div style={{padding:"12px 16px",borderBottom:`1px solid ${T.borderSoft}`}}>
       <div style={{fontFamily:df,fontSize:12,color:T.textTertiary,marginBottom:8}}>Protein sources today</div>
       <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
         {PROTEIN_SOURCES.map(src=>{
           const on=selected.includes(src);
-          return (
+          return(
             <button key={src} onClick={()=>toggle(src)}
               style={{padding:"5px 11px",borderRadius:999,fontSize:12,fontFamily:df,cursor:"pointer",
-                border:`1.5px solid ${on?T.ember:T.border}`,
-                background:on?T.emberSoft:"transparent",
+                border:`1.5px solid ${on?T.ember:T.border}`,background:on?T.emberSoft:"transparent",
                 color:on?T.ember:T.textSecondary,transition:"all .12s"}}>
               {src}
             </button>
@@ -281,85 +344,63 @@ function ProteinSources({value,onChange}){
   );
 }
 
-// ─── BucketCard — win bucket with mini progress bar ──────────────────────────
+// ─── BucketCard ───────────────────────────────────────────────────────────────
 function BucketCard({bucket,habits,log,onToggle,onCounter,onProteinSources}){
   const [open,setOpen]=React.useState(true);
   const scored=habits.filter(h=>!h.optional&&h.points>0);
   const tot=scored.reduce((s,h)=>s+h.points,0);
   let earn=0;
-  scored.forEach(h=>{const v=log[h.id];if(h.type==="counter"){if(typeof v==="number"&&v>=h.target)earn+=h.points;else if(typeof v==="number")earn+=h.points*Math.min(1,v/h.target);}else if(v===true)earn+=h.points;});
+  scored.forEach(h=>{
+    const v=log[h.id];
+    if(h.type==="counter"){
+      if(typeof v==="number"&&v>=h.target)earn+=h.points;
+      else if(typeof v==="number")earn+=h.points*Math.min(1,v/h.target);
+    }else if(v===true)earn+=h.points;
+  });
   const pct=tot?Math.round((earn/tot)*100):0;
   const won=pct>=70;
-  const doneCount=scored.filter(h=>h.type==="counter"?(log[h.id]>=h.target):log[h.id]===true).length;
-  const bucketColor=won?T.ember:pct>=50?T.steel:T.textTertiary;
-  const showProtein=bucket.name==="Physical Win";
+  const doneCount=scored.filter(h=>h.type==="counter"?(typeof log[h.id]==="number"&&log[h.id]>=h.target):log[h.id]===true).length;
+  const barColor=won?T.ember:pct>=50?T.steel:T.textTertiary;
+  const isPhysical=bucket.name==="Physical Win";
 
-  return (
-    <div style={{background:T.surface,border:`1px solid ${won?T.ember+"44":T.border}`,borderRadius:20,overflow:"hidden",
-      boxShadow:won?`0 0 16px ${T.emberSoft}`:"none",transition:"box-shadow .3s"}}>
-      {/* bucket header */}
+  return(
+    <div style={{background:T.surface,border:`1px solid ${won?T.ember+"55":T.border}`,borderRadius:20,overflow:"hidden",
+      boxShadow:won?`0 0 18px ${T.emberSoft}`:"none",transition:"all .3s"}}>
       <button onClick={()=>setOpen(v=>!v)}
         style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"14px 16px",background:"transparent",border:"none",cursor:"pointer"}}>
-        <div style={{fontSize:18,lineHeight:1}}>{bucket.emoji}</div>
-        <div style={{flex:1,textAlign:"left"}}>
-          <div style={{fontFamily:df,fontWeight:700,fontSize:14,color:T.textPrimary}}>{bucket.name}</div>
-          <div style={{marginTop:5,height:4,background:T.surfaceRaised,borderRadius:999,overflow:"hidden",width:"100%"}}>
-            <div style={{width:`${pct}%`,height:"100%",background:bucketColor,borderRadius:999,transition:"width .5s ease"}}/>
+        <div style={{fontSize:20,lineHeight:1,flexShrink:0}}>{bucket.emoji}</div>
+        <div style={{flex:1,textAlign:"left",minWidth:0}}>
+          <div style={{fontFamily:df,fontWeight:700,fontSize:14,color:T.textPrimary,marginBottom:5}}>{bucket.name}</div>
+          <div style={{height:4,background:T.surfaceRaised,borderRadius:999,overflow:"hidden"}}>
+            <div style={{width:`${pct}%`,height:"100%",background:barColor,borderRadius:999,transition:"width .5s ease"}}/>
           </div>
         </div>
-        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2,flexShrink:0}}>
-          <div style={{fontFamily:mf,fontSize:13,fontWeight:700,color:bucketColor}}>{pct}%</div>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:1,flexShrink:0,marginLeft:8}}>
+          <div style={{fontFamily:mf,fontSize:13,fontWeight:700,color:barColor}}>{pct}%</div>
           <div style={{fontFamily:mf,fontSize:10,color:T.textTertiary}}>{doneCount}/{scored.length}</div>
         </div>
-        {won&&<div style={{fontSize:14}}>🏆</div>}
+        {won&&<div style={{fontSize:15,flexShrink:0}}>🏆</div>}
         <Icon name={open?"chevron_d":"chevron_r"} size={15} color={T.textTertiary}/>
       </button>
-
-      {/* habit rows */}
       {open&&(
         <div style={{borderTop:`1px solid ${T.borderSoft}`}}>
           {habits.map(h=>(
-            <HabitRow key={h.id} habit={h} value={log[h.id]} onToggle={()=>onToggle(h.id,h)} onCounter={v=>onCounter(h.id,v)}/>
+            <HabitRow key={h.id} habit={h} value={log[h.id]}
+              onToggle={()=>onToggle(h.id,h)} onCounter={v=>onCounter(h.id,v)}/>
           ))}
-          {showProtein&&(
-            <ProteinSources value={log.__proteinSources} onChange={v=>onProteinSources(v)}/>
+          {isPhysical&&(
+            <ProteinSources value={log.__proteinSources} onChange={onProteinSources}/>
           )}
         </div>
       )}
     </div>
   );
 }
-  return (
-    <Card style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
-      {icon}
-      <div style={{fontFamily:mf,fontWeight:700,fontSize:20,color:T.textPrimary}}>{value}</div>
-      <div style={{fontFamily:df,fontSize:11.5,color:T.textTertiary}}>{label}</div>
-    </Card>
-  );
-}
 
-// ─── CalHeat ─────────────────────────────────────────────────────────────────
-function CalHeat({config,logs,weeks=12}){
-  const days=[];let c=todayKey();
-  for(let i=0;i<weeks*7;i++){days.unshift(c);c=addDays(c,-1);}
-  const grid=[];for(let i=0;i<weeks;i++)grid.push(days.slice(i*7,i*7+7));
-  return (
-    <div style={{display:"flex",gap:3,overflowX:"auto",paddingBottom:4}}>
-      {grid.map((col,ci)=>(
-        <div key={ci} style={{display:"flex",flexDirection:"column",gap:3}}>
-          {col.map(k=>{const s=logs[k]?dayScore(config,logs[k]):null;return(
-            <div key={k} title={`${k}: ${s==null?"—":s+"%"}`} style={{width:11,height:11,borderRadius:3,background:heatCol(s)}}/>
-          );})}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── ADD HABIT MODAL ──────────────────────────────────────────────────────────
+// ─── AddHabitModal ────────────────────────────────────────────────────────────
 function AddHabitModal({config,setConfig,onClose}){
   const [name,setName]=React.useState("");
-  const [cat,setCat]=React.useState("Fitness");
+  const [cat,setCat]=React.useState("Physical Win");
   const [customCat,setCustomCat]=React.useState("");
   const [pts,setPts]=React.useState(5);
   const [htype,setHtype]=React.useState("boolean");
@@ -367,8 +408,8 @@ function AddHabitModal({config,setConfig,onClose}){
   const [unit,setUnit]=React.useState("");
   const [optional,setOptional]=React.useState(false);
 
-  const existingCats=React.useMemo(()=>{
-    const s=new Set(BASE_CATS);
+  const allCats=React.useMemo(()=>{
+    const s=new Set(BUCKETS.map(b=>b.name));
     config.habits.forEach(h=>{if(h.category)s.add(h.category);});
     return[...s];
   },[config.habits]);
@@ -387,90 +428,62 @@ function AddHabitModal({config,setConfig,onClose}){
   };
 
   const inp={background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:10,color:T.textPrimary,fontFamily:df,fontSize:13,padding:"10px 12px",outline:"none",width:"100%"};
-  const fieldLabel={fontFamily:df,fontSize:12,color:T.textTertiary,marginBottom:5,display:"block"};
+  const fl={fontFamily:df,fontSize:12,color:T.textTertiary,marginBottom:5,display:"block"};
 
-  return (
+  return(
     <div onClick={e=>{if(e.target===e.currentTarget)onClose();}}
-      style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+      style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.78)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
       <div style={{background:T.surface,borderRadius:"20px 20px 0 0",padding:24,width:"100%",maxWidth:430,maxHeight:"90vh",overflowY:"auto"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
           <div style={{fontFamily:df,fontWeight:700,fontSize:17,color:T.textPrimary}}>New Habit</div>
           <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Icon name="x" size={18} color={T.textSecondary}/></button>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div><label style={fl}>Name</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Cold Shower, Calisthenics…" style={inp} autoFocus/></div>
           <div>
-            <label style={fieldLabel}>Habit name</label>
-            <input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Calisthenics, Cold Shower…" style={inp} autoFocus/>
-          </div>
-          <div>
-            <label style={fieldLabel}>Category</label>
+            <label style={fl}>Category (bucket)</label>
             <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
-              {existingCats.map(c=>(
+              {allCats.map(c=>(
                 <button key={c} onClick={()=>{setCat(c);setCustomCat("");}}
-                  style={{padding:"5px 13px",borderRadius:999,fontSize:12,fontFamily:df,cursor:"pointer",border:"none",transition:"all .12s",
-                    background:cat===c&&!customCat?T.ember:T.surfaceRaised,
-                    color:cat===c&&!customCat?"#0D0E10":T.textSecondary}}>
+                  style={{padding:"5px 12px",borderRadius:999,fontSize:12,fontFamily:df,cursor:"pointer",border:"none",
+                    background:cat===c&&!customCat?T.ember:T.surfaceRaised,color:cat===c&&!customCat?"#0D0E10":T.textSecondary}}>
                   {c}
                 </button>
               ))}
             </div>
-            <input value={customCat} onChange={e=>setCustomCat(e.target.value)} placeholder="Or create a new category…"
-              style={{...inp,fontSize:12,padding:"8px 12px"}}/>
+            <input value={customCat} onChange={e=>setCustomCat(e.target.value)} placeholder="Or type a new category…" style={{...inp,fontSize:12,padding:"8px 12px"}}/>
           </div>
           <div style={{display:"flex",gap:10}}>
             <div style={{flex:1}}>
-              <label style={fieldLabel}>Type</label>
+              <label style={fl}>Type</label>
               <div style={{display:"flex",gap:6}}>
                 {[["boolean","✓ Done"],["counter","# Counter"]].map(([v,l])=>(
                   <button key={v} onClick={()=>setHtype(v)}
-                    style={{flex:1,padding:"8px 4px",borderRadius:10,cursor:"pointer",fontFamily:df,fontSize:12,
-                      border:`1px solid ${htype===v?T.ember:T.border}`,
-                      background:htype===v?T.emberSoft:"transparent",
-                      color:htype===v?T.ember:T.textSecondary}}>
+                    style={{flex:1,padding:"8px",borderRadius:10,cursor:"pointer",fontFamily:df,fontSize:12,
+                      border:`1px solid ${htype===v?T.ember:T.border}`,background:htype===v?T.emberSoft:"transparent",color:htype===v?T.ember:T.textSecondary}}>
                     {l}
                   </button>
                 ))}
               </div>
             </div>
-            {!optional&&(
-              <div>
-                <label style={fieldLabel}>Points</label>
-                <input type="number" value={pts} onChange={e=>setPts(e.target.value)} min={0} max={100}
-                  style={{...inp,width:72,textAlign:"center"}}/>
-              </div>
-            )}
+            {!optional&&<div><label style={fl}>Points</label><input type="number" value={pts} onChange={e=>setPts(e.target.value)} min={0} max={100} style={{...inp,width:72,textAlign:"center"}}/></div>}
           </div>
           {htype==="counter"&&(
             <div style={{display:"flex",gap:10}}>
-              <div style={{flex:1}}>
-                <label style={fieldLabel}>Target</label>
-                <input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={inp}/>
-              </div>
-              <div style={{flex:1}}>
-                <label style={fieldLabel}>Unit</label>
-                <input value={unit} onChange={e=>setUnit(e.target.value)} placeholder="g, L, reps…" style={inp}/>
-              </div>
+              <div style={{flex:1}}><label style={fl}>Target</label><input type="number" value={target} onChange={e=>setTarget(e.target.value)} min={1} style={inp}/></div>
+              <div style={{flex:1}}><label style={fl}>Unit</label><input value={unit} onChange={e=>setUnit(e.target.value)} placeholder="g, L, reps…" style={inp}/></div>
             </div>
           )}
-          <div style={{display:"flex",alignItems:"center",gap:10,padding:"2px 0"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
             <button onClick={()=>setOptional(v=>!v)}
-              style={{width:20,height:20,borderRadius:5,cursor:"pointer",flexShrink:0,
-                border:`1.5px solid ${optional?T.ember:T.border}`,
-                background:optional?T.ember:"transparent",
-                display:"flex",alignItems:"center",justifyContent:"center"}}>
+              style={{width:20,height:20,borderRadius:5,cursor:"pointer",flexShrink:0,border:`1.5px solid ${optional?T.ember:T.border}`,background:optional?T.ember:"transparent",display:"flex",alignItems:"center",justifyContent:"center"}}>
               {optional&&<Icon name="check" size={12} color="#0D0E10" sw={3}/>}
             </button>
-            <span style={{fontFamily:df,fontSize:12.5,color:T.textSecondary}}>Optional — just for tracking, no score impact</span>
+            <span style={{fontFamily:df,fontSize:12.5,color:T.textSecondary}}>Optional — tracking only, no score impact</span>
           </div>
           <div style={{display:"flex",gap:8,marginTop:4}}>
-            <button onClick={onClose}
-              style={{flex:1,padding:"13px",borderRadius:12,background:"transparent",border:`1px solid ${T.border}`,color:T.textSecondary,fontFamily:df,fontSize:13,cursor:"pointer"}}>
-              Cancel
-            </button>
-            <button onClick={save}
-              style={{flex:2,padding:"13px",borderRadius:12,background:T.ember,border:"none",color:"#0D0E10",fontFamily:df,fontWeight:700,fontSize:13,cursor:"pointer"}}>
-              Save Habit
-            </button>
+            <button onClick={onClose} style={{flex:1,padding:"13px",borderRadius:12,background:"transparent",border:`1px solid ${T.border}`,color:T.textSecondary,fontFamily:df,fontSize:13,cursor:"pointer"}}>Cancel</button>
+            <button onClick={save} style={{flex:2,padding:"13px",borderRadius:12,background:T.ember,border:"none",color:"#0D0E10",fontFamily:df,fontWeight:700,fontSize:13,cursor:"pointer"}}>Save Habit</button>
           </div>
         </div>
       </div>
@@ -478,7 +491,7 @@ function AddHabitModal({config,setConfig,onClose}){
   );
 }
 
-// ─── DASHBOARD TAB ────────────────────────────────────────────────────────────
+// ─── DashboardTab ─────────────────────────────────────────────────────────────
 function DashboardTab({config,logs,quote}){
   const tk=todayKey(),yk=addDays(tk,-1);
   const ts=dayScore(config,logs[tk]),ys=logs[yk]?dayScore(config,logs[yk]):null;
@@ -488,7 +501,8 @@ function DashboardTab({config,logs,quote}){
   const log=logs[tk]||{};
   const wins=bucketWins(config,log),total=totalActiveBuckets(config);
   const hs=activeFor(config).filter(h=>!h.optional&&h.points>0);
-  return (
+
+  return(
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div>
         <div style={{fontFamily:df,fontSize:13,color:T.textTertiary}}>{new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}</div>
@@ -511,26 +525,23 @@ function DashboardTab({config,logs,quote}){
             )}
           </div>
         </div>
-        {/* bucket win row */}
         <div style={{marginTop:14,paddingTop:12,borderTop:`1px solid ${T.borderSoft}`}}>
-          <div style={{fontFamily:mf,fontSize:10,color:T.textTertiary,letterSpacing:1,marginBottom:8}}>WIN BUCKETS TODAY — {wins}/{total}</div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <div style={{fontFamily:mf,fontSize:10,color:T.textTertiary,letterSpacing:1,marginBottom:10}}>WIN BUCKETS — {wins}/{total}</div>
+          <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
             {BUCKETS.map(b=>{
               const s=bucketScore(config,log,b.name);
               const won=s!==null&&s>=70;
-              const active=s!==null;
-              return (
-                <div key={b.id}
-                  style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,opacity:active?1:0.2}}>
-                  <div style={{fontSize:20,filter:won?`drop-shadow(0 0 6px ${T.ember})`:"none",transition:"filter .3s"}}>{b.emoji}</div>
-                  <div style={{fontFamily:mf,fontSize:9,color:won?T.ember:T.textTertiary,letterSpacing:.3}}>{s===null?"—":s+"%"}</div>
+              return(
+                <div key={b.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,opacity:s===null?0.18:1}}>
+                  <div style={{fontSize:22,filter:won?`drop-shadow(0 0 6px ${T.ember})`:"none",transition:"filter .3s"}}>{b.emoji}</div>
+                  <div style={{fontFamily:mf,fontSize:9,color:won?T.ember:T.textTertiary}}>{s===null?"—":s+"%"}</div>
                 </div>
               );
             })}
           </div>
         </div>
         <div style={{marginTop:10,fontFamily:df,fontSize:12.5,color:T.textSecondary}}>
-          {wins===total&&total>0?"All buckets won today 🔥":wins===0?"Start your first bucket — every habit counts.":wins>=Math.ceil(total/2)?`${total-wins} bucket${total-wins===1?"":"s"} left to complete your day.`:`${wins} down, ${total-wins} to go.`}
+          {wins===total&&total>0?"All buckets won today 🔥":wins===0?"Start your first bucket — every habit counts.":wins>=Math.ceil(total/2)?`${total-wins} bucket${total-wins===1?"":"s"} left.`:`${wins}/${total} buckets won.`}
         </div>
       </Card>
       <div style={{display:"flex",gap:12}}>
@@ -544,24 +555,27 @@ function DashboardTab({config,logs,quote}){
     </div>
   );
 }
-// ─── TODAY TAB ────────────────────────────────────────────────────────────────
+
+// ─── TodayTab ─────────────────────────────────────────────────────────────────
 function TodayTab({config,setConfig,logs,setLogs,selDate,setSelDate}){
-  const [showAddHabit,setShowAddHabit]=React.useState(false);
-  const habits=activeFor(config),log=logs[selDate]||{},score=dayScore(config,log);
+  const [showAdd,setShowAdd]=React.useState(false);
+  const habits=activeFor(config),log=logs[selDate]||{};
+  const score=dayScore(config,log);
   const wins=bucketWins(config,log),total=totalActiveBuckets(config);
   const toggle=(id,h)=>{if(h.type==="counter")return;setLogs({...logs,[selDate]:{...log,[id]:!log[id]}});};
   const setCtr=(id,v)=>{setLogs({...logs,[selDate]:{...log,[id]:v}});};
-  const setProteinSources=v=>{setLogs({...logs,[selDate]:{...log,__proteinSources:v}});};
+  const setPS=v=>{setLogs({...logs,[selDate]:{...log,__proteinSources:v}});};
   const yk=addDays(selDate,-1),ys=logs[yk]?dayScore(config,logs[yk]):null,missed=ys!==null&&ys<50;
-  return (
+
+  return(
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        <button onClick={()=>setSelDate(addDays(selDate,-1))} style={navBtn}><Icon name="chevron_l" size={18} color={T.textSecondary}/></button>
+        <button onClick={()=>setSelDate(addDays(selDate,-1))} style={navBtnStyle}><Icon name="chevron_l" size={18} color={T.textSecondary}/></button>
         <div style={{textAlign:"center"}}>
           <div style={{fontFamily:df,fontWeight:700,fontSize:16,color:T.textPrimary}}>{selDate===todayKey()?"Today":dayLabel(selDate)}</div>
           <div style={{fontFamily:mf,fontSize:11,color:T.textTertiary}}>{selDate}</div>
         </div>
-        <button onClick={()=>selDate!==todayKey()&&setSelDate(addDays(selDate,1))} style={{...navBtn,opacity:selDate===todayKey()?.3:1}}><Icon name="chevron_r" size={18} color={T.textSecondary}/></button>
+        <button onClick={()=>selDate!==todayKey()&&setSelDate(addDays(selDate,1))} style={{...navBtnStyle,opacity:selDate===todayKey()?.3:1}}><Icon name="chevron_r" size={18} color={T.textSecondary}/></button>
       </div>
       {missed&&(
         <div style={{background:T.steelSoft,border:`1px solid ${T.steel}33`,borderRadius:16,padding:"12px 14px"}}>
@@ -573,15 +587,14 @@ function TodayTab({config,setConfig,logs,setLogs,selDate,setSelDate}){
         <ForgeRing score={score} size={92}/>
         <div style={{flex:1}}>
           <div style={{fontFamily:df,fontWeight:700,fontSize:15,color:lbl(score).c}}>{lbl(score).l}</div>
-          <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,marginTop:3}}>{wins}/{total} buckets won today</div>
-          <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
+          <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,marginTop:3}}>{wins}/{total} buckets won</div>
+          <div style={{display:"flex",gap:7,marginTop:8,flexWrap:"wrap"}}>
             {BUCKETS.map(b=>{
               const s=bucketScore(config,log,b.name);
               const won=s!==null&&s>=70;
-              const active=s!==null;
-              return (
+              return(
                 <div key={b.id} title={`${b.name}: ${s===null?"—":s+"%"}`}
-                  style={{fontSize:16,opacity:active?(won?1:0.3):0.12,filter:won?`drop-shadow(0 0 4px ${T.ember})`:"none",transition:"all .2s"}}>
+                  style={{fontSize:17,opacity:s===null?0.15:won?1:0.3,filter:won?`drop-shadow(0 0 4px ${T.ember})`:"none",transition:"all .2s"}}>
                   {b.emoji}
                 </div>
               );
@@ -592,29 +605,39 @@ function TodayTab({config,setConfig,logs,setLogs,selDate,setSelDate}){
       {BUCKETS.map(bucket=>{
         const items=habits.filter(h=>h.category===bucket.name);
         if(!items.length)return null;
-        return (
+        return(
           <BucketCard key={bucket.id} bucket={bucket} habits={items} log={log}
-            onToggle={toggle} onCounter={setCtr} onProteinSources={setProteinSources}/>
+            onToggle={toggle} onCounter={setCtr} onProteinSources={setPS}/>
         );
       })}
-      <button onClick={()=>setShowAddHabit(true)}
+      <button onClick={()=>setShowAdd(true)}
         style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"13px",borderRadius:16,background:"transparent",border:`1.5px dashed ${T.border}`,cursor:"pointer",width:"100%"}}
         onMouseEnter={e=>e.currentTarget.style.borderColor=T.ember}
         onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
         <Icon name="plus" size={16} color={T.ember}/>
         <span style={{fontFamily:df,fontSize:13,color:T.ember,fontWeight:600}}>Add Habit</span>
       </button>
-      {showAddHabit&&<AddHabitModal config={config} setConfig={setConfig} onClose={()=>setShowAddHabit(false)}/>}
+      {showAdd&&<AddHabitModal config={config} setConfig={setConfig} onClose={()=>setShowAdd(false)}/>}
     </div>
   );
 }
 
-// ─── PROGRESS TAB ─────────────────────────────────────────────────────────────
+// ─── ProgressTab ──────────────────────────────────────────────────────────────
 function ProgressTab({config,logs}){
-  const last14=React.useMemo(()=>{const a=[];let c=addDays(todayKey(),-13);for(let i=0;i<14;i++){a.push({date:c.slice(5),score:logs[c]?dayScore(config,logs[c]):0});c=addDays(c,1);}return a;},[config,logs]);
-  const hc=React.useMemo(()=>{const hs=scoredFor(config),ks=Object.keys(logs).slice(-30);return hs.map(h=>{const hits=ks.filter(k=>{const v=logs[k]&&logs[k][h.id];return h.type==="counter"?v>=h.target:v===true;});return{name:h.name,pct:ks.length?Math.round((hits.length/ks.length)*100):0};}).sort((a,b)=>b.pct-a.pct);},[config,logs]);
+  const last14=React.useMemo(()=>{
+    const a=[];let c=addDays(todayKey(),-13);
+    for(let i=0;i<14;i++){a.push({date:c.slice(5),score:logs[c]?dayScore(config,logs[c]):0});c=addDays(c,1);}
+    return a;
+  },[config,logs]);
+  const hc=React.useMemo(()=>{
+    const hs=scoredFor(config),ks=Object.keys(logs).slice(-30);
+    return hs.map(h=>{
+      const hits=ks.filter(k=>{const v=logs[k]&&logs[k][h.id];return h.type==="counter"?typeof v==="number"&&v>=h.target:v===true;});
+      return{name:h.name,pct:ks.length?Math.round((hits.length/ks.length)*100):0};
+    }).sort((a,b)=>b.pct-a.pct);
+  },[config,logs]);
   const {ResponsiveContainer,LineChart,Line,XAxis,YAxis,CartesianGrid,Tooltip}=Recharts;
-  return (
+  return(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <ST>Calendar Heatmap</ST>
       <Card><CalHeat config={config} logs={logs}/></Card>
@@ -648,32 +671,29 @@ function ProgressTab({config,logs}){
   );
 }
 
-// ─── GOALS TAB ────────────────────────────────────────────────────────────────
+// ─── GoalsTab ─────────────────────────────────────────────────────────────────
 function GoalsTab({config,setConfig,logs}){
   const [showForm,setShowForm]=React.useState(false);
   const [ng,setNg]=React.useState("");
   const [ngCat,setNgCat]=React.useState("Career");
-  const [ngCustomCat,setNgCustomCat]=React.useState("");
+  const [ngCustom,setNgCustom]=React.useState("");
   const elite=Object.keys(logs).filter(k=>dayScore(config,logs[k])>=95).length;
   const upG=(id,p)=>setConfig({...config,goals:config.goals.map(g=>g.id===id?{...g,progress:p}:g)});
   const rmG=id=>setConfig({...config,goals:config.goals.filter(g=>g.id!==id)});
-
   const goalCats=React.useMemo(()=>{
     const s=new Set(["Career","Fitness","Spiritual","Content","Lifestyle","Growth"]);
     config.goals.forEach(g=>{if(g.category)s.add(g.category);});
     return[...s];
   },[config.goals]);
-
   const addG=()=>{
     if(!ng.trim())return;
-    const finalCat=ngCustomCat.trim()||ngCat;
+    const finalCat=ngCustom.trim()||ngCat;
     setConfig({...config,goals:[...config.goals,{id:"g"+Date.now(),name:ng.trim(),category:finalCat,progress:0}]});
-    setNg("");setNgCat("Career");setNgCustomCat("");setShowForm(false);
+    setNg("");setNgCat("Career");setNgCustom("");setShowForm(false);
   };
-
   const grp={};config.goals.forEach(g=>{(grp[g.category]=grp[g.category]||[]).push(g);});
   const inp={background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:10,color:T.textPrimary,fontFamily:df,fontSize:13,padding:"10px 12px",outline:"none",width:"100%"};
-  return (
+  return(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <ST>Long-Term Goals</ST>
       {Object.entries(grp).map(([cat,items])=>(
@@ -686,14 +706,13 @@ function GoalsTab({config,setConfig,logs}){
                   <span style={{fontFamily:df,fontSize:13,color:T.textPrimary,flex:1,marginRight:8}}>{g.name}</span>
                   <button onClick={()=>rmG(g.id)} style={{background:"none",border:"none",cursor:"pointer",padding:2,flexShrink:0}}><Icon name="x" size={13} color={T.textTertiary}/></button>
                 </div>
-                <input type="range" min={0} max={100} value={g.progress} onChange={e=>upG(g.id,Number(e.target.value))} style={{width:"100%",accentColor:T.ember}}/>
+                <input type="range" min={0} max={100} value={g.progress} onChange={e=>upG(g.id,Number(e.target.value))} style={{width:"100%"}}/>
                 <div style={{fontFamily:mf,fontSize:11,color:T.textTertiary,textAlign:"right",marginTop:2}}>{g.progress}%</div>
               </div>
             ))}
           </div>
         </Card>
       ))}
-
       {!showForm?(
         <button onClick={()=>setShowForm(true)}
           style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"13px",borderRadius:16,background:"transparent",border:`1.5px dashed ${T.border}`,cursor:"pointer",width:"100%"}}
@@ -710,30 +729,23 @@ function GoalsTab({config,setConfig,logs}){
             <div style={{fontFamily:df,fontSize:12,color:T.textTertiary,marginBottom:6}}>Category</div>
             <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
               {goalCats.map(c=>(
-                <button key={c} onClick={()=>{setNgCat(c);setNgCustomCat("");}}
-                  style={{padding:"5px 13px",borderRadius:999,fontSize:12,fontFamily:df,cursor:"pointer",border:"none",
-                    background:ngCat===c&&!ngCustomCat?T.ember:T.surfaceRaised,
-                    color:ngCat===c&&!ngCustomCat?"#0D0E10":T.textSecondary}}>
+                <button key={c} onClick={()=>{setNgCat(c);setNgCustom("");}}
+                  style={{padding:"5px 12px",borderRadius:999,fontSize:12,fontFamily:df,cursor:"pointer",border:"none",
+                    background:ngCat===c&&!ngCustom?T.ember:T.surfaceRaised,color:ngCat===c&&!ngCustom?"#0D0E10":T.textSecondary}}>
                   {c}
                 </button>
               ))}
             </div>
-            <input value={ngCustomCat} onChange={e=>setNgCustomCat(e.target.value)} placeholder="Or create a new category…"
-              style={{...inp,fontSize:12,padding:"8px 12px"}}/>
+            <input value={ngCustom} onChange={e=>setNgCustom(e.target.value)} placeholder="Or create a new category…" style={{...inp,fontSize:12,padding:"8px 12px"}}/>
           </div>
           <div style={{display:"flex",gap:8}}>
-            <button onClick={()=>{setShowForm(false);setNg("");setNgCustomCat("");}}
-              style={{flex:1,padding:"11px",borderRadius:12,background:"transparent",border:`1px solid ${T.border}`,color:T.textSecondary,fontFamily:df,fontSize:12,cursor:"pointer"}}>
-              Cancel
-            </button>
+            <button onClick={()=>{setShowForm(false);setNg("");setNgCustom("");}}
+              style={{flex:1,padding:"11px",borderRadius:12,background:"transparent",border:`1px solid ${T.border}`,color:T.textSecondary,fontFamily:df,fontSize:12,cursor:"pointer"}}>Cancel</button>
             <button onClick={addG}
-              style={{flex:2,padding:"11px",borderRadius:12,background:T.ember,border:"none",color:"#0D0E10",fontFamily:df,fontWeight:700,fontSize:13,cursor:"pointer"}}>
-              Save Goal
-            </button>
+              style={{flex:2,padding:"11px",borderRadius:12,background:T.ember,border:"none",color:"#0D0E10",fontFamily:df,fontWeight:700,fontSize:13,cursor:"pointer"}}>Save Goal</button>
           </div>
         </Card>
       )}
-
       <ST>Rewards</ST>
       <Card style={{display:"flex",flexDirection:"column",gap:12}}>
         {config.rewards.map(r=>{const u=elite>=r.threshold;return(
@@ -751,33 +763,33 @@ function GoalsTab({config,setConfig,logs}){
   );
 }
 
-// ─── REVIEWS TAB ──────────────────────────────────────────────────────────────
+// ─── ReviewsTab ───────────────────────────────────────────────────────────────
 const RR=({label,value})=>(
   <div style={{display:"flex",justifyContent:"space-between",padding:"2px 0"}}>
     <span style={{fontFamily:df,fontSize:12.5,color:T.textSecondary}}>{label}</span>
     <span style={{fontFamily:mf,fontSize:12.5,color:T.textPrimary}}>{value}</span>
   </div>
 );
-
 function ReviewsTab({config,logs}){
   const hs=scoredFor(config);
   function build(days){
     let c=todayKey();const ks=[];for(let i=0;i<days;i++){ks.unshift(c);c=addDays(c,-1);}
-    const wd=ks.filter(k=>logs[k]);const scores=wd.map(k=>dayScore(config,logs[k]));
+    const wd=ks.filter(k=>logs[k]);
+    const scores=wd.map(k=>dayScore(config,logs[k]));
     const avg=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0;
-    const cmp=ks.length?Math.round((wd.filter(k=>dayScore(config,logs[k])>=70).length/ks.length)*100):0;
-    const hst=hs.map(h=>{const hits=wd.filter(k=>{const v=logs[k][h.id];return h.type==="counter"?v>=h.target:v===true;}).length;return{name:h.name,pct:wd.length?Math.round((hits/wd.length)*100):0};});
+    const cmp=ks.length?Math.round((wd.filter(k=>dayScore(config,logs[k])>=50).length/ks.length)*100):0;
+    const hst=hs.map(h=>{const hits=wd.filter(k=>{const v=logs[k][h.id];return h.type==="counter"?typeof v==="number"&&v>=h.target:v===true;}).length;return{name:h.name,pct:wd.length?Math.round((hits/wd.length)*100):0};});
     const best=hst.slice().sort((a,b)=>b.pct-a.pct)[0],worst=hst.slice().sort((a,b)=>a.pct-b.pct)[0];
-    let lng=0,cur=0,pk=null;ks.forEach(k=>{const s=logs[k]?dayScore(config,logs[k]):0;if(s>=70){cur=pk&&addDays(pk,1)===k?cur+1:1;lng=Math.max(lng,cur);}else cur=0;pk=k;});
+    let lng=0,cur=0,pk=null;ks.forEach(k=>{const s=logs[k]?dayScore(config,logs[k]):0;if(s>=50){cur=pk&&addDays(pk,1)===k?cur+1:1;lng=Math.max(lng,cur);}else cur=0;pk=k;});
     return{avg,cmp,best,worst,lng,wdc:wd.length};
   }
   const W=build(7),M=build(30);
-  return (
+  return(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <ST>This Week</ST>
       <Card style={{display:"flex",flexDirection:"column",gap:8}}>
         <RR label="Overall Score" value={`${W.avg}/100`}/>
-        <RR label="Completion" value={`${W.cmp}%`}/>
+        <RR label="Active Days" value={`${W.cmp}%`}/>
         <RR label="Longest Streak" value={`${W.lng}d`}/>
         {W.best&&<RR label="Best Habit" value={W.best.name}/>}
         {W.worst&&<RR label="Weakest Habit" value={W.worst.name}/>}
@@ -790,7 +802,7 @@ function ReviewsTab({config,logs}){
       <ST>This Month</ST>
       <Card style={{display:"flex",flexDirection:"column",gap:8}}>
         <RR label="Average Score" value={`${M.avg}/100`}/>
-        <RR label="Completion" value={`${M.cmp}%`}/>
+        <RR label="Active Days" value={`${M.cmp}%`}/>
         <RR label="Longest Streak" value={`${M.lng}d`}/>
         {M.best&&<RR label="Best Habit" value={M.best.name}/>}
         {M.worst&&<RR label="Weakest Habit" value={M.worst.name}/>}
@@ -800,24 +812,74 @@ function ReviewsTab({config,logs}){
   );
 }
 
-// ─── PROFILE TAB ──────────────────────────────────────────────────────────────
-function ProfileTab({config,setConfig,logs}){
+// ─── ProfileTab ───────────────────────────────────────────────────────────────
+function ProfileTab({config,setConfig,logs,setLogs}){
   const [ew,setEw]=React.useState(false);
-  const [showAddHabit,setShowAddHabit]=React.useState(false);
+  const [showAdd,setShowAdd]=React.useState(false);
   const tk=todayKey(),cs=curStreak(config,logs,tk),ls=longestStreak(config,logs);
   const elite=Object.keys(logs).filter(k=>dayScore(config,logs[k])>=95).length;
   const td=Object.keys(logs).length,avg=td?Math.round(Object.keys(logs).reduce((s,k)=>s+dayScore(config,logs[k]),0)/td):0;
   const upP=(f,v)=>setConfig({...config,profile:{...config.profile,[f]:v}});
   const upH=(id,p)=>setConfig({...config,habits:config.habits.map(h=>h.id===id?{...h,points:p}:h)});
   const rmH=id=>setConfig({...config,habits:config.habits.filter(h=>h.id!==id)});
-  return (
+
+  const doExport=()=>{
+    const blob=new Blob([JSON.stringify({config,logs},null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=`forge-backup-${todayKey()}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  };
+  const CAT_MIGRATION={
+    "Spiritual":"Spiritual Win","Fitness":"Physical Win","Nutrition":"Physical Win",
+    "Discipline":"Lifestyle","Career":"Skills — Building","Growth":"Skills — Practice",
+  };
+  const migrateHabits=habits=>habits.map(h=>({
+    ...h,
+    category: CAT_MIGRATION[h.category]||h.category,
+  }));
+
+  const doImport=()=>{
+    const input=document.createElement("input");input.type="file";input.accept=".json";
+    input.onchange=e=>{
+      const file=e.target.files[0];if(!file)return;
+      const reader=new FileReader();
+      reader.onload=async ev=>{
+        try{
+          const data=JSON.parse(ev.target.result);
+          if(data.config&&data.logs){
+            // migrate old category names to new bucket names
+            const migratedHabits=migrateHabits(data.config.habits||defaultHabits);
+            const savedIds=new Set(migratedHabits.map(h=>h.id));
+            const newHabits=defaultHabits.filter(h=>!savedIds.has(h.id));
+            const restoredCfg={
+              ...defaultConfig,
+              ...data.config,
+              habits:[...migratedHabits,...newHabits],
+              profile:{...defaultConfig.profile,...(data.config.profile||{})},
+            };
+            const restoredLogs=data.logs;
+            await saveCfg(restoredCfg);
+            await saveLogs(restoredLogs);
+            setConfig(restoredCfg);
+            setLogs(restoredLogs);
+            alert("✅ Backup restored! Your data is back.");
+          }else{alert("❌ Invalid backup file.");}
+        }catch(err){alert("❌ Could not read file: "+err.message);}
+      };
+      reader.readAsText(file);
+    };
+    document.body.appendChild(input);input.click();document.body.removeChild(input);
+  };
+
+  return(
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       <Card style={{display:"flex",alignItems:"center",gap:14}}>
         <div style={{width:54,height:54,borderRadius:"50%",background:T.emberSoft,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
           <Icon name="user" size={24} color={T.ember}/>
         </div>
         <div style={{flex:1}}>
-          <input value={config.profile.name} onChange={e=>upP("name",e.target.value)} placeholder="Your name"
+          <input value={config.profile.name||""} onChange={e=>upP("name",e.target.value)} placeholder="Your name"
             style={{background:"transparent",border:"none",fontFamily:df,fontWeight:700,fontSize:16,color:T.textPrimary,width:"100%",outline:"none"}}/>
           <div style={{fontFamily:mf,fontSize:11,color:T.textTertiary,marginTop:2}}>Forge your best self</div>
         </div>
@@ -843,10 +905,9 @@ function ProfileTab({config,setConfig,logs}){
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <ST>Habits &amp; Scoring</ST>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <button onClick={()=>setShowAddHabit(true)}
-            style={{display:"flex",alignItems:"center",gap:5,background:T.emberSoft,border:"none",borderRadius:8,cursor:"pointer",padding:"5px 10px"}}>
+          <button onClick={()=>setShowAdd(true)} style={{display:"flex",alignItems:"center",gap:5,background:T.emberSoft,border:"none",borderRadius:8,cursor:"pointer",padding:"5px 10px"}}>
             <Icon name="plus" size={13} color={T.ember}/>
-            <span style={{fontFamily:df,fontSize:11,color:T.ember,fontWeight:600}}>Add Habit</span>
+            <span style={{fontFamily:df,fontSize:11,color:T.ember,fontWeight:600}}>Add</span>
           </button>
           <button onClick={()=>setEw(v=>!v)} style={{background:"none",border:"none",cursor:"pointer",padding:4}}><Icon name="pencil" size={13} color={T.textTertiary}/></button>
         </div>
@@ -866,69 +927,34 @@ function ProfileTab({config,setConfig,logs}){
           ))}
         </Card>
       )}
-      {showAddHabit&&<AddHabitModal config={config} setConfig={setConfig} onClose={()=>setShowAddHabit(false)}/>}
-
       <ST>Data &amp; Backup</ST>
       <Card style={{display:"flex",flexDirection:"column",gap:12}}>
-        <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,lineHeight:1.6}}>
-          Export saves everything — all your logs, habits, goals and settings — as a JSON file. Import restores it. Do this occasionally to keep a backup safe.
-        </div>
+        <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,lineHeight:1.6}}>Export saves everything — logs, habits, goals. Import restores it. Do this weekly.</div>
         <div style={{display:"flex",gap:8}}>
-          <button onClick={()=>{
-            const payload=JSON.stringify({config,logs},null,2);
-            const blob=new Blob([payload],{type:"application/json"});
-            const url=URL.createObjectURL(blob);
-            const a=document.createElement("a");
-            const date=new Date().toISOString().slice(0,10);
-            a.href=url;a.download=`forge-backup-${date}.json`;
-            document.body.appendChild(a);a.click();
-            document.body.removeChild(a);URL.revokeObjectURL(url);
-          }} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6,padding:"12px",borderRadius:12,background:T.emberSoft,border:`1px solid ${T.ember}44`,cursor:"pointer"}}>
+          <button onClick={doExport} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6,padding:"12px",borderRadius:12,background:T.emberSoft,border:`1px solid ${T.ember}44`,cursor:"pointer"}}>
             <Icon name="trending_up" size={15} color={T.ember}/>
-            <span style={{fontFamily:df,fontWeight:600,fontSize:13,color:T.ember}}>Export Backup</span>
+            <span style={{fontFamily:df,fontWeight:600,fontSize:13,color:T.ember}}>Export</span>
           </button>
-          <button onClick={()=>{
-            const input=document.createElement("input");
-            input.type="file";input.accept=".json";
-            input.onchange=e=>{
-              const file=e.target.files[0];if(!file)return;
-              const reader=new FileReader();
-              reader.onload=ev=>{
-                try{
-                  const data=JSON.parse(ev.target.result);
-                  if(data.config&&data.logs){
-                    setConfig({...defaultConfig,...data.config,profile:{...defaultConfig.profile,...(data.config.profile||{})}});
-                    setLogs(data.logs);
-                    alert("✅ Backup restored successfully!");
-                  } else {
-                    alert("❌ Invalid backup file.");
-                  }
-                }catch(err){alert("❌ Could not read file.");}
-              };
-              reader.readAsText(file);
-            };
-            document.body.appendChild(input);input.click();document.body.removeChild(input);
-          }} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6,padding:"12px",borderRadius:12,background:T.surfaceRaised,border:`1px solid ${T.border}`,cursor:"pointer"}}>
+          <button onClick={doImport} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6,padding:"12px",borderRadius:12,background:T.surfaceRaised,border:`1px solid ${T.border}`,cursor:"pointer"}}>
             <Icon name="plus" size={15} color={T.textSecondary}/>
-            <span style={{fontFamily:df,fontWeight:600,fontSize:13,color:T.textSecondary}}>Import Backup</span>
+            <span style={{fontFamily:df,fontWeight:600,fontSize:13,color:T.textSecondary}}>Import</span>
           </button>
         </div>
-        <div style={{fontFamily:mf,fontSize:10.5,color:T.textTertiary,lineHeight:1.5}}>
-          Tip: export once a week. Store the file in iCloud, Google Drive, or your Notes app.
-        </div>
+        <div style={{fontFamily:mf,fontSize:10.5,color:T.textTertiary}}>Tip: export once a week. Save to iCloud or Google Drive.</div>
       </Card>
+      {showAdd&&<AddHabitModal config={config} setConfig={setConfig} onClose={()=>setShowAdd(false)}/>}
     </div>
   );
 }
 
-// ─── ROOT ─────────────────────────────────────────────────────────────────────
+// ─── Root ─────────────────────────────────────────────────────────────────────
 const TABS=[
-  {id:"dashboard",label:"Home",   icon:"home"},
-  {id:"today",    label:"Today",  icon:"check"},
+  {id:"dashboard",label:"Home",    icon:"home"},
+  {id:"today",    label:"Today",   icon:"check"},
   {id:"progress", label:"Progress",icon:"trending_up"},
-  {id:"goals",    label:"Goals",  icon:"target"},
-  {id:"reviews",  label:"Reviews",icon:"calendar"},
-  {id:"profile",  label:"Profile",icon:"user"},
+  {id:"goals",    label:"Goals",   icon:"target"},
+  {id:"reviews",  label:"Reviews", icon:"calendar"},
+  {id:"profile",  label:"Profile", icon:"user"},
 ];
 
 function Forge(){
@@ -937,9 +963,14 @@ function Forge(){
   const [logs,setLogs]=React.useState({});
   const [loaded,setLoaded]=React.useState(false);
   const [selDate,setSelDate]=React.useState(todayKey());
-  const [quote]=React.useState(()=>{const l=QUOTES;return l[Math.floor(Math.random()*l.length)];});
+  const [quote]=React.useState(()=>QUOTES[Math.floor(Math.random()*QUOTES.length)]);
 
-  React.useEffect(()=>{(async()=>{const[c,l]=await Promise.all([loadCfg(),loadLogs()]);setConfig(c);setLogs(l);setLoaded(true);})();},[]);
+  React.useEffect(()=>{
+    (async()=>{
+      const[c,l]=await Promise.all([loadCfg(),loadLogs()]);
+      setConfig(c);setLogs(l);setLoaded(true);
+    })();
+  },[]);
   React.useEffect(()=>{if(loaded)saveCfg(config);},[config,loaded]);
   React.useEffect(()=>{if(loaded)saveLogs(logs);},[logs,loaded]);
 
@@ -952,7 +983,7 @@ function Forge(){
     </div>
   );
 
-  return (
+  return(
     <div style={{background:T.bg,minHeight:"100vh",maxWidth:430,margin:"0 auto",display:"flex",flexDirection:"column",fontFamily:df}}>
       <div style={{padding:"20px 18px 8px",display:"flex",alignItems:"center",gap:8,borderBottom:`1px solid ${T.borderSoft}`}}>
         <Icon name="flame" size={20} color={T.ember}/>
@@ -965,12 +996,12 @@ function Forge(){
         {tab==="progress"&&<ProgressTab config={config} logs={logs}/>}
         {tab==="goals"&&<GoalsTab config={config} setConfig={setConfig} logs={logs}/>}
         {tab==="reviews"&&<ReviewsTab config={config} logs={logs}/>}
-        {tab==="profile"&&<ProfileTab config={config} setConfig={setConfig} logs={logs}/>}
+        {tab==="profile"&&<ProfileTab config={config} setConfig={setConfig} logs={logs} setLogs={setLogs}/>}
       </div>
       <div style={{position:"sticky",bottom:0,background:`${T.surface}F5`,backdropFilter:"blur(12px)",borderTop:`1px solid ${T.border}`,display:"flex",padding:"8px 4px 10px"}}>
         {TABS.map(t=>{const a=tab===t.id;return(
           <button key={t.id} onClick={()=>setTab(t.id)}
-            style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",border:"none",cursor:"pointer",padding:"6px 0",borderRadius:10,transition:"background .15s",...(a?{background:T.emberSoft}:{})}}>
+            style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:"none",border:"none",cursor:"pointer",padding:"6px 0",borderRadius:10,...(a?{background:T.emberSoft}:{})}}>
             <Icon name={t.icon} size={20} color={a?T.ember:T.textTertiary} sw={a?2.4:2}/>
             <span style={{fontFamily:mf,fontSize:9.5,color:a?T.ember:T.textTertiary,letterSpacing:.3}}>{t.label}</span>
           </button>
