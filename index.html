@@ -128,6 +128,7 @@ const defaultHabits=[
   {id:"cooking",name:"Cooking",category:"Skills — Practice",points:3,icon:"hobby"},
   {id:"noPorn",name:"No Porn / NoFap",category:"Lifestyle",points:10,icon:"noporn"},
   {id:"cleanSpeech",name:"Clean Speech",category:"Lifestyle",points:5,icon:"heart"},
+  {id:"noFoodOrder",name:"No Ordering Food Online",category:"Lifestyle",points:5,icon:"lock"},
   {id:"screenTime",name:"Screen Time Under Target",category:"Lifestyle",points:0,icon:"screen",optional:true},
 ];
 const defaultGoals=[
@@ -286,31 +287,65 @@ function CalHeat({config,logs,weeks=12}){
   );
 }
 
-// ─── HabitRow ─────────────────────────────────────────────────────────────────
-function HabitRow({habit,value,onToggle,onCounter}){
+// ─── 7-day habit streak dots ──────────────────────────────────────────────────
+function HabitDots({habit,logs,config}){
+  const days=[];
+  for(let i=6;i>=0;i--) days.push(addDays(todayKey(),-i));
+  return(
+    <div style={{display:"flex",gap:4,alignItems:"center",paddingLeft:2}}>
+      {days.map(k=>{
+        const log=logs[k]||{};
+        const done=habit.type==="counter"
+          ?(typeof log[habit.id]==="number"&&log[habit.id]>=habit.target)
+          :log[habit.id]===true;
+        const isToday=k===todayKey();
+        return(
+          <div key={k} title={k}
+            style={{width:7,height:7,borderRadius:"50%",flexShrink:0,
+              background:done?T.ember:T.surfaceRaised,
+              border:`1px solid ${done?T.ember:T.border}`,
+              boxShadow:done&&isToday?`0 0 5px ${T.ember}`:undefined,
+              transition:"background .2s"}}>
+          </div>
+        );
+      })}
+      <span style={{fontFamily:mf,fontSize:9,color:T.textTertiary,marginLeft:2}}>7d</span>
+    </div>
+  );
+}
+
+// ─── HabitRow (with optional dots) ───────────────────────────────────────────
+function HabitRow({habit,value,onToggle,onCounter,showDots,logs,config}){
   const done=habit.type==="counter"?(typeof value==="number"&&value>=habit.target):value===true;
   return(
-    <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderBottom:`1px solid ${T.borderSoft}`}}>
-      <div style={{width:32,height:32,borderRadius:10,background:T.surfaceRaised,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-        <HIcon name={habit.icon} size={17} color={done?T.ember:T.textSecondary}/>
-      </div>
-      <div style={{flex:1,minWidth:0}}>
-        <div style={{fontFamily:df,fontSize:13.5,fontWeight:500,color:T.textPrimary}}>{habit.name}</div>
-        {habit.optional&&<div style={{fontFamily:mf,fontSize:10,color:T.textTertiary}}>optional</div>}
-      </div>
-      {habit.type==="counter"?(
-        <div style={{display:"flex",alignItems:"center",gap:6}}>
-          <input type="number" value={value||""} placeholder="0" onChange={e=>onCounter(Number(e.target.value))}
-            style={{width:52,background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:8,color:T.textPrimary,fontFamily:mf,fontSize:12,padding:"6px",textAlign:"center",outline:"none"}}/>
-          <span style={{fontFamily:mf,fontSize:11,color:T.textTertiary}}>{habit.unit}</span>
+    <div style={{display:"flex",flexDirection:"column",borderBottom:`1px solid ${T.borderSoft}`}}>
+      <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px"}}>
+        <div style={{width:32,height:32,borderRadius:10,background:T.surfaceRaised,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <HIcon name={habit.icon} size={17} color={done?T.ember:T.textSecondary}/>
         </div>
-      ):(
-        <button onClick={onToggle} style={{width:28,height:28,borderRadius:"50%",flexShrink:0,cursor:"pointer",
-          border:`1.5px solid ${done?T.ember:T.border}`,background:done?T.ember:"transparent",
-          display:"flex",alignItems:"center",justifyContent:"center",
-          boxShadow:done?`0 0 10px ${T.emberSoft}`:"none",transition:"all .15s ease"}}>
-          {done&&<Icon name="check" size={14} color="#0D0E10" sw={3}/>}
-        </button>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontFamily:df,fontSize:13.5,fontWeight:500,color:T.textPrimary}}>{habit.name}</div>
+          {habit.optional&&<div style={{fontFamily:mf,fontSize:10,color:T.textTertiary}}>optional</div>}
+        </div>
+        {habit.type==="counter"?(
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <input type="number" value={value||""} placeholder="0" onChange={e=>onCounter(Number(e.target.value))}
+              style={{width:52,background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:8,color:T.textPrimary,fontFamily:mf,fontSize:12,padding:"6px",textAlign:"center",outline:"none"}}/>
+            <span style={{fontFamily:mf,fontSize:11,color:T.textTertiary}}>{habit.unit}</span>
+          </div>
+        ):(
+          <button onClick={onToggle} style={{width:28,height:28,borderRadius:"50%",flexShrink:0,cursor:"pointer",
+            border:`1.5px solid ${done?T.ember:T.border}`,background:done?T.ember:"transparent",
+            display:"flex",alignItems:"center",justifyContent:"center",
+            boxShadow:done?`0 0 10px ${T.emberSoft}`:"none",transition:"all .15s ease"}}>
+            {done&&<Icon name="check" size={14} color="#0D0E10" sw={3}/>}
+          </button>
+        )}
+      </div>
+      {showDots&&logs&&(
+        <div style={{padding:"4px 16px 10px",paddingLeft:60}}>
+          <HabitDots habit={habit} logs={logs} config={config}/>
+        </div>
       )}
     </div>
   );
@@ -345,8 +380,9 @@ function ProteinSources({value,onChange}){
 }
 
 // ─── BucketCard ───────────────────────────────────────────────────────────────
-function BucketCard({bucket,habits,log,onToggle,onCounter,onProteinSources}){
+function BucketCard({bucket,habits,log,logs,config,onToggle,onCounter,onProteinSources}){
   const [open,setOpen]=React.useState(true);
+  const [showDots,setShowDots]=React.useState(false);
   const scored=habits.filter(h=>!h.optional&&h.points>0);
   const tot=scored.reduce((s,h)=>s+h.points,0);
   let earn=0;
@@ -380,13 +416,19 @@ function BucketCard({bucket,habits,log,onToggle,onCounter,onProteinSources}){
           <div style={{fontFamily:mf,fontSize:10,color:T.textTertiary}}>{doneCount}/{scored.length}</div>
         </div>
         {won&&<div style={{fontSize:15,flexShrink:0}}>🏆</div>}
+        <button onClick={e=>{e.stopPropagation();setShowDots(v=>!v);}}
+          title="Toggle 7-day history"
+          style={{background:showDots?T.emberSoft:"none",border:`1px solid ${showDots?T.ember:T.border}`,borderRadius:7,cursor:"pointer",padding:"3px 5px",display:"flex",alignItems:"center",flexShrink:0}}>
+          <span style={{fontFamily:mf,fontSize:9,color:showDots?T.ember:T.textTertiary}}>7d</span>
+        </button>
         <Icon name={open?"chevron_d":"chevron_r"} size={15} color={T.textTertiary}/>
       </button>
       {open&&(
         <div style={{borderTop:`1px solid ${T.borderSoft}`}}>
           {habits.map(h=>(
             <HabitRow key={h.id} habit={h} value={log[h.id]}
-              onToggle={()=>onToggle(h.id,h)} onCounter={v=>onCounter(h.id,v)}/>
+              onToggle={()=>onToggle(h.id,h)} onCounter={v=>onCounter(h.id,v)}
+              showDots={showDots} logs={logs} config={config}/>
           ))}
           {isPhysical&&(
             <ProteinSources value={log.__proteinSources} onChange={onProteinSources}/>
@@ -607,6 +649,7 @@ function TodayTab({config,setConfig,logs,setLogs,selDate,setSelDate}){
         if(!items.length)return null;
         return(
           <BucketCard key={bucket.id} bucket={bucket} habits={items} log={log}
+            logs={logs} config={config}
             onToggle={toggle} onCounter={setCtr} onProteinSources={setPS}/>
         );
       })}
@@ -812,6 +855,44 @@ function ReviewsTab({config,logs}){
   );
 }
 
+// ─── QuotesEditor ─────────────────────────────────────────────────────────────
+function QuotesEditor({config,setConfig}){
+  const [newQ,setNewQ]=React.useState("");
+  const quotes=config.quotes||[];
+  const addQ=()=>{
+    if(!newQ.trim())return;
+    setConfig({...config,quotes:[...quotes,newQ.trim()]});
+    setNewQ("");
+  };
+  const rmQ=i=>setConfig({...config,quotes:quotes.filter((_,idx)=>idx!==i)});
+  return(
+    <Card style={{display:"flex",flexDirection:"column",gap:0,padding:0,overflow:"hidden"}}>
+      {quotes.length===0&&(
+        <div style={{padding:"16px",fontFamily:df,fontSize:12.5,color:T.textTertiary,textAlign:"center"}}>No quotes yet — add one below.</div>
+      )}
+      {quotes.map((q,i)=>(
+        <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"13px 16px",borderBottom:`1px solid ${T.borderSoft}`}}>
+          <div style={{width:4,height:4,borderRadius:"50%",background:T.ember,marginTop:7,flexShrink:0}}/>
+          <div style={{flex:1,fontFamily:df,fontSize:13,color:T.textPrimary,lineHeight:1.5,fontStyle:"italic"}}>"{q}"</div>
+          <button onClick={()=>rmQ(i)} style={{background:"none",border:"none",cursor:"pointer",padding:2,flexShrink:0,opacity:.5}}>
+            <Icon name="x" size={13} color={T.textTertiary}/>
+          </button>
+        </div>
+      ))}
+      <div style={{display:"flex",gap:8,padding:"12px 16px"}}>
+        <input value={newQ} onChange={e=>setNewQ(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&addQ()}
+          placeholder="Add a quote…"
+          style={{flex:1,background:T.surfaceRaised,border:`1px solid ${T.border}`,borderRadius:10,color:T.textPrimary,fontFamily:df,fontSize:13,padding:"9px 12px",outline:"none"}}/>
+        <button onClick={addQ}
+          style={{width:38,height:38,borderRadius:10,background:T.ember,border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <Icon name="plus" size={17} color="#0D0E10"/>
+        </button>
+      </div>
+    </Card>
+  );
+}
+
 // ─── ProfileTab ───────────────────────────────────────────────────────────────
 function ProfileTab({config,setConfig,logs,setLogs}){
   const [ew,setEw]=React.useState(false);
@@ -927,6 +1008,8 @@ function ProfileTab({config,setConfig,logs,setLogs}){
           ))}
         </Card>
       )}
+      <ST>Quotes</ST>
+      <QuotesEditor config={config} setConfig={setConfig}/>
       <ST>Data &amp; Backup</ST>
       <Card style={{display:"flex",flexDirection:"column",gap:12}}>
         <div style={{fontFamily:df,fontSize:12.5,color:T.textSecondary,lineHeight:1.6}}>Export saves everything — logs, habits, goals. Import restores it. Do this weekly.</div>
